@@ -1,0 +1,7 @@
+# Restore submerged gravel shadows
+
+The 157 native bed stones were already seated in the contoured sediment, but `installPondStones` enabled `castShadow` only on prototype groups 0–5. Groups 6 and 7 therefore did not occlude sunlight. All eight groups now cast and receive shadows. This restores local grounding without changing meshes, placements, textures, water resolution, lights or shadow capture frequency. Blender files and exported GLBs are unchanged.
+
+`pond-stone-shadows-fixture.html` uses actual temple, bridge, basin, stone, koi and lamp assets, actual refraction and caustic shaders, a 4096 PCFSoft sun map and six fixed views. Before/after captures differ only in whether the two submerged groups cast shadows. Four views looking into water produce exclusively darker changed RGB channels (3191, 40035, 27504 and 21698 channels respectively); two views without visible affected sediment are pixel-identical. Shadow depth changes are independently read back. Every comparison adds exactly two draw calls and 12560 submitted triangles. These are draw counts for this fixture, not a frame-rate promise or a complete-scene benchmark.
+
+Evidence: `evidence/pond-stone-shadows-comparison.json`, `pond-stone-shadows-before.png`, `pond-stone-shadows-after.png`. No browser warnings or errors in the fixture. This still uses the existing directional shadow projection; it does not add bent light-path shadow tracing, ambient contact occlusion under the bridge, or real-time global illumination. The overall AAA fidelity and performance goal is still open.

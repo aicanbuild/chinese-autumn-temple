@@ -1,0 +1,18 @@
+<!doctype html><html><meta charset="utf-8"><title>室内反射方向验证</title><style>body{background:#222;color:white}pre{white-space:pre-wrap}</style><script type="importmap">{"imports":{"three":"../dist/vendor/three/three.module.js"}}</script><pre id="result">验证中…</pre><script type="module">
+import * as T from 'three';import {applyHallReflection} from '../dist/hall-reflections.js';
+try{
+const renderer=new T.WebGLRenderer();renderer.setSize(128,128);renderer.outputColorSpace=T.LinearSRGBColorSpace;document.body.append(renderer.domElement);
+const room=new T.Scene();room.add(new T.Mesh(new T.BoxGeometry(4,4,4),new T.MeshBasicMaterial({color:0x0000ff,side:T.BackSide})));
+for(const [x,w,color]of [[-.75,2.5,0x00ff00],[1.25,1.5,0xff0000]]){const p=new T.Mesh(new T.PlaneGeometry(w,4),new T.MeshBasicMaterial({color,side:T.DoubleSide}));p.position.set(x,0,1.999);room.add(p);}
+const generator=new T.PMREMGenerator(renderer),target=generator.fromScene(room,0,.01,10,{size:128,position:new T.Vector3()}),scene=new T.Scene(),camera=new T.PerspectiveCamera(40,1,.01,10);
+const old=new T.MeshStandardMaterial({color:0xffffff,metalness:1,roughness:0,envMap:target.texture,envMapIntensity:1});
+const local=applyHallReflection(old.clone(),target.texture,{position:new T.Vector3(),min:new T.Vector3(-2,-2,-2),max:new T.Vector3(2,2,2)});
+const mirror=new T.Mesh(new T.PlaneGeometry(.7,.7),local);scene.add(mirror);const readTarget=new T.WebGLRenderTarget(128,128),cases=[];
+for(const [name,x,z]of [['right',1,0],['left',-1,0],['outside',3,0]]){
+ mirror.position.set(x,0,z);camera.position.set(x,0,z+1);camera.lookAt(x,0,z);const colors=[];
+ for(const material of [old,local]){mirror.material=material;renderer.setRenderTarget(readTarget);renderer.render(scene,camera);const p=new Uint8Array(4);renderer.readRenderTargetPixels(readTarget,64,64,1,1,p);colors.push(Array.from(p));}
+ cases.push({name,original:colors[0],corrected:colors[1]});
+}
+const pass=cases[0].original[1]>150&&cases[0].corrected[0]>150&&cases[0].corrected[1]<30&&cases[1].corrected[1]>150&&cases[2].original.every((v,i)=>v===cases[2].corrected[i]);document.querySelector('#result').textContent=JSON.stringify({pass,cases,explanation:'Right-hand mirror must reflect red right wall, left mirror green left wall; outside the correction box retains the original lookup.'},null,2);renderer.setRenderTarget(null);renderer.render(scene,camera);
+}catch(e){document.querySelector('#result').textContent=e.stack;console.error(e);}
+</script></html>

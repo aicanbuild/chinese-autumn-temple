@@ -1,0 +1,15 @@
+<!doctype html><html><meta charset="utf-8"><title>陈设反射光路验证</title><style>body{background:#222;color:#ddd}pre{white-space:pre-wrap}</style><script type="importmap">{"imports":{"three":"../dist/vendor/three/three.module.js","../dist/hall-reflections.js":"../dist/hall-reflections.js?v=d15caddfe3a1"}}</script><pre id="result">验证中…</pre><script type="module">
+import * as T from 'three';import {captureHallReflections} from '../dist/hall-reflections.js';
+try{
+const renderer=new T.WebGLRenderer({antialias:false});renderer.setSize(192,192);renderer.shadowMap.enabled=false;document.body.append(renderer.domElement);const scene=new T.Scene();
+const room=new T.Mesh(new T.BoxGeometry(12,8,12),new T.MeshBasicMaterial({color:0x0020ff,side:T.BackSide}));room.position.set(0,2.8,-6.8);scene.add(room);
+// The red furnishing is behind the viewing camera. It can only reach the
+// center pixel through the mirror, never through the direct camera image.
+const hero=new T.Mesh(new T.PlaneGeometry(2,2),new T.MeshBasicMaterial({color:0xff1200,side:T.DoubleSide}));hero.position.set(0,2.8,-4.8);scene.add(hero);
+const mirror=new T.Mesh(new T.PlaneGeometry(.8,.8),new T.MeshStandardMaterial({color:0xffffff,metalness:1,roughness:0}));mirror.position.set(0,2.8,-7.8);scene.add(mirror);
+const probe=captureHallReflections(renderer,scene,[mirror],{exclude:[hero],specularRoots:[mirror]});let uniform,enabled=false;const compile=mirror.material.onBeforeCompile;mirror.material.onBeforeCompile=function(shader,...args){compile.call(this,shader,...args);uniform=shader.uniforms.hallSpecularMap;uniform.value=enabled?probe.specularTarget.texture:probe.target.texture;};
+const camera=new T.PerspectiveCamera(45,1,.05,30);camera.position.set(0,2.8,-6.8);camera.lookAt(0,2.8,-7.8);const target=new T.WebGLRenderTarget(192,192);const pixels=[];
+for(const mode of [false,true]){enabled=mode;if(uniform)uniform.value=enabled?probe.specularTarget.texture:probe.target.texture;renderer.setRenderTarget(target);renderer.render(scene,camera);const p=new Uint8Array(4);renderer.readRenderTargetPixels(target,96,96,1,1,p);pixels.push([...p]);}
+const [before,after]=pixels;document.querySelector('#result').textContent=JSON.stringify({passed:before[0]<50&&before[2]>100&&after[0]>100&&after[2]<50,before,after,probe:probe.stats,description:'A hidden-from-camera red furnishing must appear in reflection instead of the blue room behind it.'},null,2);renderer.setRenderTarget(null);renderer.render(scene,camera);
+}catch(e){document.querySelector('#result').textContent=e.stack;console.error(e);}
+</script></html>

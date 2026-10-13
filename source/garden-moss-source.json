@@ -1,0 +1,18 @@
+{
+  "asset": "Moss002",
+  "source": "https://ambientcg.com/view?id=Moss002",
+  "download": "https://ambientcg.com/get?file=Moss002_2K-JPG.zip",
+  "license": "CC0",
+  "licenseSource": "https://docs.ambientcg.com/license/",
+  "resolution": "2048 x 2048",
+  "maps": ["Color", "NormalGL", "Roughness"],
+  "processing": "Original JPG files extracted without pixel edits; runtime color-space and material blending only.",
+  "renderTileMeters": 1.2,
+  "runtimeEncoding": {
+    "script": "source/encode_garden_moss.py",
+    "color": "2048 x 2048 JPEG quality 97, 4:4:4",
+    "roughness": "2048 x 2048 grayscale JPEG quality 95",
+    "normal": "Unmodified original JPG",
+    "originalsRetained": true
+  }
+}

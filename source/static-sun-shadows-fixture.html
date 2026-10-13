@@ -1,0 +1,20 @@
+<!doctype html><html><meta charset="utf-8"><title>静态阴影缓存验证</title><style>body{background:#222;color:#ddd}pre{white-space:pre-wrap}</style><script type="importmap">{"imports":{"three":"../dist/vendor/three/three.module.js","../dist/static-sun-shadows.js":"../dist/static-sun-shadows.js?v=12f1c138982a"}}</script><pre id="result">验证中…</pre><script type="module">
+import * as T from 'three';import {createStaticSunShadows} from '../dist/static-sun-shadows.js';
+try{
+const renderer=new T.WebGLRenderer({antialias:false});renderer.setSize(640,480);renderer.shadowMap.enabled=true;renderer.shadowMap.type=T.PCFSoftShadowMap;renderer.shadowMap.autoUpdate=false;renderer.info.autoReset=false;document.body.append(renderer.domElement);
+const scene=new T.Scene(),sun=new T.DirectionalLight(0xffffff,4);sun.position.set(-4,9,5);sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);Object.assign(sun.shadow.camera,{left:-7,right:7,top:7,bottom:-7,near:.1,far:30});sun.shadow.bias=-.0001;scene.add(sun,sun.target,new T.HemisphereLight(0xffffff,0x333333,.5));
+const fixed=new T.Group(),still=new T.Mesh(new T.TorusKnotGeometry(1,.3,256,32),new T.MeshStandardMaterial({color:0x90602a}));still.position.set(0,2,0);still.castShadow=still.receiveShadow=true;fixed.add(still);scene.add(fixed);
+const ground=new T.Mesh(new T.PlaneGeometry(18,18),new T.MeshStandardMaterial({color:0x999999}));ground.rotation.x=-Math.PI/2;ground.receiveShadow=true;scene.add(ground);
+const moving=new T.Mesh(new T.BoxGeometry(1,1,1),new T.MeshStandardMaterial({color:0xff3333}));moving.castShadow=moving.receiveShadow=true;scene.add(moving);
+const camera=new T.PerspectiveCamera(48,4/3,.1,100);camera.position.set(6,5,8);camera.lookAt(0,1,0);const target=new T.WebGLRenderTarget(640,480),cache=createStaticSunShadows(renderer,scene,sun,[fixed]);
+function capture(enabled){cache.enabled=enabled;renderer.setRenderTarget(target);renderer.shadowMap.needsUpdate=true;sun.shadow.needsUpdate=true;renderer.info.reset();renderer.render(scene,camera);const color=new Uint8Array(640*480*4),shadow=new Uint8Array(1024*1024*4);renderer.readRenderTargetPixels(target,0,0,640,480,color);renderer.readRenderTargetPixels(sun.shadow.map,0,0,1024,1024,shadow);return {color,shadow,triangles:renderer.info.render.triangles,calls:renderer.info.render.calls};}
+function difference(a,b){let changed=0,max=0;for(let i=0;i<a.length;i++){const d=Math.abs(a[i]-b[i]);if(d)changed++;max=Math.max(max,d);}return {changed,max};}
+const cases=[];
+for(let i=0;i<6;i++){
+ moving.position.set(-2+i*.8,1.3,.6);moving.rotation.y=i*.3;
+ if(i===3)still.position.x=.3;if(i===4)still.visible=false;if(i===5){still.visible=true;sun.position.x=-2;}
+ const a=capture(false),b=capture(true);cases.push({frame:i,color:difference(a.color,b.color),shadow:difference(a.shadow,b.shadow),beforeTriangles:a.triangles,afterTriangles:b.triangles,beforeCalls:a.calls,afterCalls:b.calls,stats:{...cache.stats}});
+}
+renderer.setRenderTarget(null);renderer.shadowMap.needsUpdate=true;renderer.render(scene,camera);document.querySelector('#result').textContent=JSON.stringify({passed:cases.every(c=>!c.color.changed&&!c.shadow.changed),cases,stats:cache.stats},null,2);
+}catch(e){document.querySelector('#result').textContent=e.stack;console.error(e);}
+</script></html>

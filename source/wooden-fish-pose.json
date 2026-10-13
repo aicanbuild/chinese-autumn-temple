@@ -1,0 +1,28 @@
+{
+  "head": [
+    0.2529999911785126,
+    0.03999999910593033,
+    -0.054999999701976776
+  ],
+  "grip": [
+    0.32280513644218445,
+    0.015069587156176567,
+    0.2641092538833618
+  ],
+  "native": [
+    {
+      "file": "殿内木鱼.blend",
+      "malletParts": 11,
+      "preservedObjects": 39,
+      "minimumMalletHeight": 0.0034746720921248198,
+      "tableTopHeight": 0.004
+    },
+    {
+      "file": "听秋寺院.blend",
+      "malletParts": 11,
+      "preservedObjects": 10085,
+      "minimumMalletHeight": 0.003473639488220215,
+      "tableTopHeight": 0.004
+    }
+  ]
+}

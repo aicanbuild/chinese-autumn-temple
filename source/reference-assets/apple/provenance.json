@@ -1,0 +1,32 @@
+{
+  "author": "Oliver Harries",
+  "license": "CC0-1.0",
+  "source": "https://polyhaven.com/a/food_apple_01",
+  "files": {
+    "include": {
+      "textures/food_apple_01_nor_gl_2k.jpg": {
+        "size": 240476,
+        "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/2k/food_apple_01/food_apple_01_nor_gl_2k.jpg",
+        "md5": "02a449a2b6341c1044a38acdc22e865d"
+      },
+      "textures/food_apple_01_diff_2k.jpg": {
+        "size": 643716,
+        "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/2k/food_apple_01/food_apple_01_diff_2k.jpg",
+        "md5": "ce556afd6671aea9dfeb3e7a43bab17c"
+      },
+      "textures/food_apple_01_rough_2k.jpg": {
+        "size": 142078,
+        "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/2k/food_apple_01/food_apple_01_rough_2k.jpg",
+        "md5": "a0441e176cd386a2211eab0c86a65082"
+      },
+      "food_apple_01.bin": {
+        "size": 170680,
+        "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/8k/food_apple_01/food_apple_01.bin",
+        "md5": "26b23e40de43097b0185a0d93cd72d3b"
+      }
+    },
+    "size": 2705,
+    "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/2k/food_apple_01/food_apple_01_2k.gltf",
+    "md5": "232d6d1f976643c6095a68605828598b"
+  }
+}

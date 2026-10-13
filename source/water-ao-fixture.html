@@ -1,0 +1,19 @@
+<!doctype html><meta charset="utf-8"><title>水面遮挡合成验证</title><style>body{background:#222;color:#eee;font:14px monospace}pre{white-space:pre-wrap}</style><script type="importmap">{"imports":{"three":"../dist/vendor/three/three.module.js","three/addons/":"../dist/vendor/three/addons/"}}</script><pre id="result">正在检验水面像素与岸上接触阴影…</pre><script type="module">
+import * as T from 'three';import {CachedSSAOPass} from '../dist/cached-ao.js';import {installWaterAOMask} from '../dist/water-ao.js';
+try{
+const width=512,height=384,r=new T.WebGLRenderer({antialias:false});r.setSize(width,height);document.body.prepend(r.domElement);const scene=new T.Scene();scene.background=new T.Color(.12,.12,.12);const camera=new T.PerspectiveCamera(48,width/height,.1,30);camera.position.set(0,5,6);camera.lookAt(0,0,0);camera.updateMatrixWorld();
+function mesh(g,c,x,y,z){const o=new T.Mesh(g,new T.MeshBasicMaterial({color:c}));o.position.set(x,y,z);scene.add(o);return o;}
+const floor=mesh(new T.BoxGeometry(9,.1,9),0xbfb59a,0,-.6,0),water=mesh(new T.PlaneGeometry(4,4),0x719faa,0,0,0);water.rotation.x=-Math.PI/2;
+mesh(new T.BoxGeometry(.6,.8,.6),0x7f654c,-.8,.4,0);mesh(new T.BoxGeometry(.8,.4,.8),0x403a30,.75,-.25,0);mesh(new T.BoxGeometry(.6,.8,.6),0x7f654c,3,-.15,0);
+const ao=new CachedSSAOPass(scene,camera,width,height,32);ao.kernelRadius=.45;ao.minDistance=.008/29.9;ao.maxDistance=.9/29.9;
+const override=ao._overrideVisibility.bind(ao),restore=ao._restoreVisibility.bind(ao);ao._overrideVisibility=()=>{override();water.visible=false;};ao._restoreVisibility=()=>{restore();water.visible=true;};ao.excludeFromAO=o=>o===water;
+const mask=installWaterAOMask(ao,water);const target=new T.WebGLRenderTarget(width,height,{type:T.UnsignedByteType});
+function draw(mode){r.setRenderTarget(target);r.render(scene,camera);if(mode!==0){mask.enabled=mode===2;ao.invalidated=true;ao.render(r,null,target);}const p=new Uint8Array(width*height*4);r.readRenderTargetPixels(target,0,0,width,height,p);return p;}
+const clean=draw(0),before=draw(1),after=draw(2),normals=new Uint16Array(width*height*4);r.readRenderTargetPixels(ao.normalRenderTarget,0,0,width,height,normals);let waterPixels=0,waterErrors=0,oldWaterErrors=0,solidContact=0;
+for(let i=0;i<after.length;i+=4){if(normals[i+3]===0){waterPixels++;for(let k=0;k<3;k++){if(after[i+k]!==clean[i+k])waterErrors++;if(before[i+k]!==clean[i+k])oldWaterErrors++;}}else if(after[i]<clean[i]-2)solidContact++;}
+if(!waterPixels||waterErrors||!oldWaterErrors||!solidContact)throw new Error(JSON.stringify({waterPixels,waterErrors,oldWaterErrors,solidContact}));
+// The next still frame must reuse the already masked AO, not draw another proxy.
+const priorDraws=mask.stats.draws;ao.render(r,null,target);if(mask.stats.draws!==priorDraws)throw new Error('Stationary AO unexpectedly recaptured');
+document.querySelector('#result').textContent=JSON.stringify({passed:true,waterPixels,waterErrors,oldWaterErrors,solidContact,maskDraws:mask.stats.draws,cachedFramePreservesMask:true},null,2);r.setRenderTarget(null);r.render(scene,camera);
+}catch(e){document.querySelector('#result').textContent=e.stack;console.error(e);}
+</script>

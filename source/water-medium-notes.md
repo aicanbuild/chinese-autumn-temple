@@ -1,0 +1,13 @@
+# Consistent transmission through pond water
+
+Revisited supplied video frames `evidence/reference-2.jpg` and `reference-4.jpg`, then examined the current full-scene water. The existing implementation used RGB extinction (0.25, 0.075, 0.045) per metre for sunlight entering the water and (0.55, 0.18, 0.095) for the return path toward the viewer. For the current single homogeneous water medium these directional coefficients were inconsistent.
+
+`water-medium.js` now owns the authored extinction (0.55, 0.18, 0.095) and one GLSL beam-transmission function used by both paths. It retains the prior viewer-path appearance and attenuates incident sunlight with the same coefficients. Existing Snell ray lengths, caustic redistribution, direct shadow visibility, reflection, surface glints and in-scattering approximation remain unchanged. This follows the homogeneous-medium transmittance and path multiplicativity described in [PBRT 4e, Transmittance](https://pbr-book.org/4ed/Volume_Scattering/Transmittance).
+
+This does not turn the renderer into a full volumetric path tracer. The sky/environment contribution, stylized source radiance, baked caustic interpolation and screen-space captures remain approximations. The values are authored water color coefficients, not measured from the reference video. No Blender geometry or native material was changed in this browser shading revision. No texture, mesh or extra render pass was introduced.
+
+Validation: fourteen optical, ray, leaf-motion and build checks pass. Both production shader builders are checked to embed the shared transmission function at their actual light-path evaluation. `water-medium-proof.html` renders 48 combinations of depth, sun angle and viewer angle to a floating-point GPU target and compares against independent 65,536-step attenuation integration. Maximum absolute channel error is 0.000004134; the former two-coefficient model differs by up to 0.143968 over those cases. This is a transmission calculation test, not a perceptual metric or an overall performance measurement.
+
+Full production-scene inspection used `build_water_medium_audit.py` with an incident-light-only before/after toggle, at elevated and pondside cameras. The bed, fish and shallow edge stay visible; deeper sunlit areas receive the consistent water color. No browser warnings/errors. Final screenshot: `evidence/water-medium-main.png`; numeric report: `evidence/water-medium-proof.json`.
+
+Runtime `e5859e95954b`, rollback `c81b1efe744a`. Changes remain local while the previous site-upload permission question is pending; no rejected publication action was retried. Commercial AAA fidelity remains incomplete.

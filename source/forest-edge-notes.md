@@ -1,0 +1,13 @@
+# Woodland-edge groundcover
+
+The lateral woodland slopes were mostly bare between trees. `plant_forest_edge.py` clusters 265 low evergreen shrubs and 743 ferns around 62 existing tree anchors. Placement is deterministic and constrained to the woodland edge, with the garden, axial approach, paths, existing shrubs and tree trunks kept clear. Existing fine shrub geometry and four CC0 fern variants are reused; no duplicate texture/model download is introduced.
+
+Plants are positioned by raycasting the actual native terrain. Ferns follow the sampled slope normal, while shrubs grow vertically from buried stems. The maximum root-height error after layout rounding is 0.050 mm. Fern prototypes are normalized from their original display grid to one meter width before the authored scale is applied. The complete `听秋寺院.blend` preserves existing object data identities and transforms; the new planting is also saved as editable linked meshes in `山林地被.blend`. Both remain local, with a pre-change backup.
+
+`forest-edge.js` reuses ten mesh/material combinations. Browsers supporting multi-draw use ten BatchedMesh objects with per-plant camera/shadow culling; the fallback uses shared prototypes in 14 m spatial groups. All plants can receive and cast shadows, and use existing opaque leaf geometry or the original fern alpha masks. No new interaction or floating label is added. Planting is static in this version.
+
+Six placement/batching/understory tests pass, including slope-normal transforms and fern normalization. Three real-asset render comparisons against the fallback produced 0 / 1 / 13 changed framebuffer channels respectively; the latter has only five channels differing by more than 2/255, with a maximum 4/255. Thus results are visually equivalent but not uniformly pixel-identical. Fixture calls fell from 134/107/90 to 51/43/47, and submitted triangles from 1,574,524/1,190,362/1,217,110 to 1,441,284/1,166,306/973,102. These compare rendering methods for the same new planting, not performance against the unplanted scene; the planting itself adds geometry.
+
+Evidence under `evidence/forest-edge-*` includes native placement metadata, browser culling comparisons, before/after slope views and close fern views. The fixture omits temple buildings and water so the whole courtyard must be checked separately. The final complete courtyard loaded all 1,008 plants in ten batches without browser warnings/errors; `forest-edge-main.png` records the bridge-side slope. The final JSON layout is 74,283 bytes.
+
+The groundcover improves woodland layering but does not complete the AAA fidelity or performance goal.

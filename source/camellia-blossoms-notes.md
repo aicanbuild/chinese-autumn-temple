@@ -1,0 +1,11 @@
+# Layered pondside camellia blossoms
+
+Sixty original five-lobed low-poly flower clusters have been replaced at their original planting locations. Each new flower has twelve curved petals in two staggered whorls, thirty-eight modeled stamens, five sepals and a connecting pedicel. Petal colors graduate from a warm base to an ivory rim. Surface relief is geometric and the materials reuse vertex colors; there are no additional texture images.
+
+`build_camellia_blossoms.py` reads the earlier leaf placement records, creates three shared prototype parts and saves the editable `池岸山茶花.blend`. It backs up and updates `听秋寺院.blend`, replacing only the original ivory flower mesh. Geometry, UV, material assignment and world transform signatures on 9,783 unrelated objects are unchanged after reopening the full native file. Run after `build_camellia_leaves.py` when rebuilding the original temple.
+
+The Three.js installer draws sixty instances of each of three parts, removing exactly 24,000 original triangles. The replacement uses 316,320 triangles in three instanced draws. This increases close-up geometry; it is not a performance optimization. The Draco prototype is 24,292 bytes, plus the placement JSON. Current runtime is `5a5566ab38a5`; rollback remains the last published `c81b1efe744a` because the intervening local leaf revision was not published.
+
+Validation: nine passing tests across blossoms, leaf placement, foliage lighting and browser build suites. `verify_camellia_blossoms.py` independently opens the standalone and full native files, verifies their 180 objects share three meshes, checks nondegenerate triangles and finite vertices, and compares every world matrix with browser placements. Full-scene before/after comparison used `build_camellia_blossoms_audit.py`; browser reported sixty blooms, three draws and 316,320 triangles without warnings/errors. `evidence/camellia-blossoms-main.png` records the accepted view. Diagnostic controls remain outside the deployment directory.
+
+Publication was not attempted this turn. The earlier upload authorization question remains pending after automatic approval review rejected the preceding site update. All changes in this revision are local.

@@ -1,0 +1,17 @@
+<!doctype html><html lang="zh"><meta charset="utf-8"><title>鱼群游动检查</title><style>body{margin:0;background:#233b34;color:#eee;font:14px sans-serif}button,input{margin:8px;padding:8px}canvas{display:block}</style><script type="importmap">{"imports":{"three":"../dist/vendor/three/three.module.js","three/addons/":"../dist/vendor/three/addons/"}}</script><button id="old">原路线</button><button id="new">错开路线</button><button id="play">播放 / 暂停</button><label>时间（秒）<input id="time" type="number" value="891.7" step=".1"></label><pre id="state">加载…</pre><script type="module">
+import * as T from 'three';import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';import {DRACOLoader} from 'three/addons/loaders/DRACOLoader.js';import {createKoi,updateKoi} from '../dist/koi.js';
+try{
+const renderer=new T.WebGLRenderer({antialias:true});renderer.setSize(1280,620);renderer.setPixelRatio(1);renderer.toneMapping=T.ACESFilmicToneMapping;renderer.toneMappingExposure=1;document.body.append(renderer.domElement);
+const scene=new T.Scene();scene.background=new T.Color('#244339');scene.add(new T.HemisphereLight('#e0f2ff','#606035',2));const sun=new T.DirectionalLight('#fff0cf',3);sun.position.set(-5,12,4);scene.add(sun);
+const loader=new GLTFLoader().setDRACOLoader(new DRACOLoader().setDecoderPath('../dist/vendor/three/addons/libs/draco/gltf/'));
+const [gltf,reference]=await Promise.all([loader.loadAsync('../dist/assets/koi/koi.glb'),fetch('./koi-flock-reference.json').then(r=>r.json())]);
+const fish=createKoi(gltf.scene,scene,()=>.5);for(let i=0;i<fish.length;i++){Object.assign(fish[i],reference[i]);fish[i].group.scale.setScalar(reference[i].scale);}
+const bed=new T.Mesh(new T.CircleGeometry(1,100),new T.MeshStandardMaterial({color:'#53624f',roughness:1}));bed.rotation.x=-Math.PI/2;bed.scale.set(11.5,6.9,1);bed.position.set(0,-1.5,5.8);scene.add(bed);
+for(const x of [-1.04,1.04])for(let k=0;k<5;k++){const p=new T.Mesh(new T.BoxGeometry(.21,1.7,.21),new T.MeshStandardMaterial({color:'#6c4430'}));p.position.set(x,-.6,1.4+k*2.6);scene.add(p);}
+const camera=new T.PerspectiveCamera(45,1280/620,.03,100);camera.position.set(0,20,14);camera.lookAt(0,-.4,5.8);
+let time=891.7,playing=false,modified=true,last=performance.now();
+function draw(){for(let i=0;i<16;i++)fish[i].schoolIndex=modified?i:undefined;updateKoi(fish,time);renderer.render(scene,camera);document.querySelector('#state').textContent=JSON.stringify({mode:modified?'错开路线':'原路线',seconds:+time.toFixed(2),fish:16,triangles:renderer.info.render.triangles});}
+document.querySelector('#old').onclick=()=>{modified=false;draw();};document.querySelector('#new').onclick=()=>{modified=true;draw();};document.querySelector('#play').onclick=()=>{playing=!playing;};document.querySelector('#time').oninput=e=>{time=+e.target.value;draw();};
+function frame(now){const dt=Math.min(.1,(now-last)/1000);last=now;if(playing){time+=dt;draw();}requestAnimationFrame(frame);}draw();requestAnimationFrame(frame);
+}catch(e){document.querySelector('#state').textContent=e.stack;console.error(e);}
+</script></html>

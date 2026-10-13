@@ -1,0 +1,17 @@
+{
+  "sunPosition": [
+    -24,
+    21,
+    10
+  ],
+  "sunTarget": [
+    0,
+    0,
+    -1
+  ],
+  "sunColor": "#ffe7c2",
+  "sunIntensity": 5.2,
+  "environmentIntensity": 0.8,
+  "volumeExtinction": 0.01,
+  "nativeEnvironmentStrength": 0.48
+}

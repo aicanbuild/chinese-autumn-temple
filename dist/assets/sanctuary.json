@@ -1,0 +1,776 @@
+{
+  "components": 3488,
+  "flames": [
+    [
+      -2.13,
+      2.458,
+      -7.35
+    ],
+    [
+      -2.65,
+      2.612,
+      -8.18
+    ],
+    [
+      2.13,
+      2.458,
+      -7.35
+    ],
+    [
+      2.65,
+      2.612,
+      -8.18
+    ]
+  ],
+  "removeRegionsNative": [
+    [
+      -5.24,
+      5.24,
+      5.16,
+      10.24,
+      4.07,
+      4.27
+    ],
+    [
+      -5.65,
+      5.65,
+      10.16,
+      10.34,
+      1.46,
+      3.97
+    ],
+    [
+      -1.27,
+      1.27,
+      8.92,
+      9.07,
+      1.76,
+      4.3
+    ],
+    [
+      -1.62,
+      1.62,
+      7.82,
+      7.99,
+      1.13,
+      1.76
+    ],
+    [
+      -1.751,
+      1.751,
+      7.849,
+      9.451,
+      1.784,
+      1.896
+    ],
+    [
+      -2.8205,
+      -2.7795,
+      10.126,
+      10.163,
+      3.7295,
+      3.7705
+    ],
+    [
+      2.7795,
+      2.8205,
+      10.126,
+      10.163,
+      3.7295,
+      3.7705
+    ]
+  ],
+  "preservedSculpture": 38,
+  "preservedIncense": 196,
+  "removedFaces": 0,
+  "caissonTop": 5.74,
+  "muralPanels": 4,
+  "dougongClusters": 96,
+  "surfaceRevision": 2,
+  "lotusRevision": 1,
+  "lotusBotany": {
+    "openFlowers": 6,
+    "buds": 4,
+    "peltateLeaves": 6,
+    "petals": 120,
+    "stamens": 288
+  },
+  "fruitRevision": 1,
+  "fruitDetails": {
+    "apples": 6,
+    "citrus": 6,
+    "contactGap": 0.0005
+  },
+  "finishRevision": 1,
+  "candlesticks": {
+    "stands": [
+      {
+        "positionNative": [
+          -2.13,
+          7.35,
+          1.095
+        ],
+        "scale": 1.0,
+        "supportTop": 1.07,
+        "candleBase": 1.995,
+        "candleRadius": 0.075,
+        "parts": 62
+      },
+      {
+        "positionNative": [
+          -2.65,
+          8.18,
+          1.952
+        ],
+        "scale": 0.43,
+        "supportTop": 1.945,
+        "candleBase": 2.339,
+        "candleRadius": 0.047,
+        "parts": 62
+      },
+      {
+        "positionNative": [
+          2.13,
+          7.35,
+          1.095
+        ],
+        "scale": 1.0,
+        "supportTop": 1.07,
+        "candleBase": 1.995,
+        "candleRadius": 0.075,
+        "parts": 62
+      },
+      {
+        "positionNative": [
+          2.65,
+          8.18,
+          1.952
+        ],
+        "scale": 0.43,
+        "supportTop": 1.945,
+        "candleBase": 2.339,
+        "candleRadius": 0.047,
+        "parts": 62
+      }
+    ],
+    "reference": "https://www.metmuseum.org/art/collection/search/40725",
+    "parts": 248,
+    "revision": 1
+  },
+  "altarRelief": {
+    "revision": 1,
+    "panels": [
+      {
+        "centerNative": [
+          -1.16,
+          7.846,
+          1.42
+        ],
+        "parts": 46
+      },
+      {
+        "centerNative": [
+          0,
+          7.846,
+          1.42
+        ],
+        "parts": 46
+      },
+      {
+        "centerNative": [
+          1.16,
+          7.846,
+          1.42
+        ],
+        "parts": 46
+      }
+    ],
+    "parts": 138,
+    "closedReliefs": true,
+    "backPlaneNative": 7.848,
+    "maxDepth": 0.05
+  },
+  "muralRevision": 1,
+  "muralArtworks": 2,
+  "offeringCups": {
+    "cups": 7,
+    "parts": 21,
+    "supportTop": 1.895,
+    "cupHeight": 0.073,
+    "outerDiameter": 0.114,
+    "waterLevel": 1.951,
+    "meniscusRise": 0.0008,
+    "rimWireRadius": 0.0007,
+    "closedCeramicBodies": true
+  },
+  "altarTabletop": {
+    "parts": 8,
+    "top": 1.895,
+    "bottom": 1.785,
+    "width": 3.5,
+    "depth": 1.6,
+    "mitredRails": 4,
+    "inlayRadius": 0.001,
+    "removeRegionNative": [
+      -1.751,
+      1.751,
+      7.849,
+      9.451,
+      1.784,
+      1.896
+    ]
+  },
+  "ceilingCarving": {
+    "revision": 1,
+    "motifs": 43,
+    "petals": 324,
+    "parts": 367,
+    "closedReliefs": true,
+    "supportOverlapMeters": 0.002,
+    "fields": [
+      {
+        "field": "coffer",
+        "center": [
+          -4.45,
+          5.95,
+          4.294
+        ],
+        "radius": 0.37,
+        "petals": 8,
+        "parts": 9
+      },
+      {
+        "field": "coffer",
+        "center": [
+          -4.45,
+          7.22,
+          4.294
+        ],
+        "radius": 0.37,
+        "petals": 8,
+        "parts": 9
+      },
+      {
+        "field": "coffer",
+        "center": [
+          -4.45,
+          8.49,
+          4.294
+        ],
+        "radius": 0.37,
+        "petals": 8,
+        "parts": 9
+      },
+      {
+        "field": "coffer",
+        "center": [
+          -4.45,
+          9.76,
+          4.294
+        ],
+        "radius": 0.37,
+        "petals": 8,
+        "parts": 9
+      },
+      {
+        "field": "coffer",
+        "center": [
+          -3.05,
+          5.95,
+          4.294
+        ],
+        "radius": 0.37,
+        "petals": 8,
+        "parts": 9
+      },
+      {
+        "field": "coffer",
+        "center": [
+          -3.05,
+          7.22,
+          4.294
+        ],
+        "radius": 0.37,
+        "petals": 8,
+        "parts": 9
+      },
+      {
+        "field": "coffer",
+        "center": [
+          -3.05,
+          8.49,
+          4.294
+        ],
+        "radius": 0.37,
+        "petals": 8,
+        "parts": 9
+      },
+      {
+        "field": "coffer",
+        "center": [
+          -3.05,
+          9.76,
+          4.294
+        ],
+        "radius": 0.37,
+        "petals": 8,
+        "parts": 9
+      },
+      {
+        "field": "coffer",
+        "center": [
+          3.05,
+          5.95,
+          4.294
+        ],
+        "radius": 0.37,
+        "petals": 8,
+        "parts": 9
+      },
+      {
+        "field": "coffer",
+        "center": [
+          3.05,
+          7.22,
+          4.294
+        ],
+        "radius": 0.37,
+        "petals": 8,
+        "parts": 9
+      },
+      {
+        "field": "coffer",
+        "center": [
+          3.05,
+          8.49,
+          4.294
+        ],
+        "radius": 0.37,
+        "petals": 8,
+        "parts": 9
+      },
+      {
+        "field": "coffer",
+        "center": [
+          3.05,
+          9.76,
+          4.294
+        ],
+        "radius": 0.37,
+        "petals": 8,
+        "parts": 9
+      },
+      {
+        "field": "coffer",
+        "center": [
+          4.45,
+          5.95,
+          4.294
+        ],
+        "radius": 0.37,
+        "petals": 8,
+        "parts": 9
+      },
+      {
+        "field": "coffer",
+        "center": [
+          4.45,
+          7.22,
+          4.294
+        ],
+        "radius": 0.37,
+        "petals": 8,
+        "parts": 9
+      },
+      {
+        "field": "coffer",
+        "center": [
+          4.45,
+          8.49,
+          4.294
+        ],
+        "radius": 0.37,
+        "petals": 8,
+        "parts": 9
+      },
+      {
+        "field": "coffer",
+        "center": [
+          4.45,
+          9.76,
+          4.294
+        ],
+        "radius": 0.37,
+        "petals": 8,
+        "parts": 9
+      },
+      {
+        "field": "rear",
+        "center": [
+          -1.8,
+          10,
+          4.295
+        ],
+        "radius": 0.22,
+        "petals": 8,
+        "parts": 9
+      },
+      {
+        "field": "rear",
+        "center": [
+          -0.6,
+          10,
+          4.295
+        ],
+        "radius": 0.22,
+        "petals": 8,
+        "parts": 9
+      },
+      {
+        "field": "rear",
+        "center": [
+          0.6,
+          10,
+          4.295
+        ],
+        "radius": 0.22,
+        "petals": 8,
+        "parts": 9
+      },
+      {
+        "field": "rear",
+        "center": [
+          1.8,
+          10,
+          4.295
+        ],
+        "radius": 0.22,
+        "petals": 8,
+        "parts": 9
+      },
+      {
+        "field": "corner",
+        "center": [
+          -1.92,
+          5.18,
+          4.345
+        ],
+        "radius": 0.21,
+        "petals": 8,
+        "parts": 9
+      },
+      {
+        "field": "corner",
+        "center": [
+          -1.92,
+          9.02,
+          4.345
+        ],
+        "radius": 0.21,
+        "petals": 8,
+        "parts": 9
+      },
+      {
+        "field": "corner",
+        "center": [
+          1.92,
+          5.18,
+          4.345
+        ],
+        "radius": 0.21,
+        "petals": 8,
+        "parts": 9
+      },
+      {
+        "field": "corner",
+        "center": [
+          1.92,
+          9.02,
+          4.345
+        ],
+        "radius": 0.21,
+        "petals": 8,
+        "parts": 9
+      },
+      {
+        "field": "well",
+        "center": [
+          0,
+          7.1,
+          5.68
+        ],
+        "radius": 0.79,
+        "petals": 16,
+        "parts": 17
+      },
+      {
+        "field": "well",
+        "center": [
+          0,
+          7.1,
+          5.53
+        ],
+        "radius": 0.46,
+        "petals": 12,
+        "parts": 13
+      },
+      {
+        "field": "well",
+        "center": [
+          0,
+          7.1,
+          5.44
+        ],
+        "radius": 0.23,
+        "petals": 8,
+        "parts": 9
+      },
+      {
+        "field": "well",
+        "center": [
+          0.92,
+          7.1,
+          5.46
+        ],
+        "radius": 0.1,
+        "petals": 6,
+        "parts": 7
+      },
+      {
+        "field": "well",
+        "center": [
+          0.8499691699103838,
+          7.452068757775883,
+          5.46
+        ],
+        "radius": 0.1,
+        "petals": 6,
+        "parts": 7
+      },
+      {
+        "field": "well",
+        "center": [
+          0.6505382386916237,
+          7.7505382386916235,
+          5.46
+        ],
+        "radius": 0.1,
+        "petals": 6,
+        "parts": 7
+      },
+      {
+        "field": "well",
+        "center": [
+          0.35206875777588265,
+          7.949969169910384,
+          5.46
+        ],
+        "radius": 0.1,
+        "petals": 6,
+        "parts": 7
+      },
+      {
+        "field": "well",
+        "center": [
+          5.633375276077825e-17,
+          8.02,
+          5.46
+        ],
+        "radius": 0.1,
+        "petals": 6,
+        "parts": 7
+      },
+      {
+        "field": "well",
+        "center": [
+          -0.3520687577758826,
+          7.949969169910384,
+          5.46
+        ],
+        "radius": 0.1,
+        "petals": 6,
+        "parts": 7
+      },
+      {
+        "field": "well",
+        "center": [
+          -0.6505382386916236,
+          7.7505382386916235,
+          5.46
+        ],
+        "radius": 0.1,
+        "petals": 6,
+        "parts": 7
+      },
+      {
+        "field": "well",
+        "center": [
+          -0.8499691699103838,
+          7.452068757775883,
+          5.46
+        ],
+        "radius": 0.1,
+        "petals": 6,
+        "parts": 7
+      },
+      {
+        "field": "well",
+        "center": [
+          -0.92,
+          7.1,
+          5.46
+        ],
+        "radius": 0.1,
+        "petals": 6,
+        "parts": 7
+      },
+      {
+        "field": "well",
+        "center": [
+          -0.849969169910384,
+          6.7479312422241176,
+          5.46
+        ],
+        "radius": 0.1,
+        "petals": 6,
+        "parts": 7
+      },
+      {
+        "field": "well",
+        "center": [
+          -0.6505382386916239,
+          6.449461761308376,
+          5.46
+        ],
+        "radius": 0.1,
+        "petals": 6,
+        "parts": 7
+      },
+      {
+        "field": "well",
+        "center": [
+          -0.35206875777588315,
+          6.250030830089616,
+          5.46
+        ],
+        "radius": 0.1,
+        "petals": 6,
+        "parts": 7
+      },
+      {
+        "field": "well",
+        "center": [
+          -1.6900125828233474e-16,
+          6.18,
+          5.46
+        ],
+        "radius": 0.1,
+        "petals": 6,
+        "parts": 7
+      },
+      {
+        "field": "well",
+        "center": [
+          0.3520687577758828,
+          6.2500308300896155,
+          5.46
+        ],
+        "radius": 0.1,
+        "petals": 6,
+        "parts": 7
+      },
+      {
+        "field": "well",
+        "center": [
+          0.6505382386916236,
+          6.449461761308376,
+          5.46
+        ],
+        "radius": 0.1,
+        "petals": 6,
+        "parts": 7
+      },
+      {
+        "field": "well",
+        "center": [
+          0.8499691699103836,
+          6.747931242224117,
+          5.46
+        ],
+        "radius": 0.1,
+        "petals": 6,
+        "parts": 7
+      }
+    ]
+  },
+  "continuousWax": [
+    {
+      "index": 0,
+      "radius": 0.07500021801298669,
+      "height": 0.4599999952316285,
+      "bottom": 1.9950000047683716,
+      "pool": 2.443,
+      "runs": 7,
+      "vertices": 9602,
+      "triangles": 19200
+    },
+    {
+      "index": 1,
+      "radius": 0.047000337152421766,
+      "height": 0.2700000133514404,
+      "bottom": 2.3389999866485596,
+      "pool": 2.597,
+      "runs": 7,
+      "vertices": 9602,
+      "triangles": 19200
+    },
+    {
+      "index": 2,
+      "radius": 0.07500021801298669,
+      "height": 0.4599999952316285,
+      "bottom": 1.9950000047683716,
+      "pool": 2.443,
+      "runs": 7,
+      "vertices": 9602,
+      "triangles": 19200
+    },
+    {
+      "index": 3,
+      "radius": 0.047000337152421766,
+      "height": 0.2700000133514404,
+      "bottom": 2.3389999866485596,
+      "pool": 2.597,
+      "runs": 7,
+      "vertices": 9602,
+      "triangles": 19200
+    }
+  ],
+  "altarBrocade": {
+    "runners": 2,
+    "width": 0.6,
+    "fabricThickness": 0.0008,
+    "asset": "altar-brocade.glb"
+  },
+  "doorBacks": {
+    "leaves": 4,
+    "parts": 644,
+    "asset": "door-backs.glb"
+  },
+  "aureoleRelief": {
+    "parts": 81,
+    "petals": 80,
+    "triangles": 117888,
+    "replacedRays": 44,
+    "asset": "aureole-relief.glb"
+  },
+  "caissonVines": {
+    "panels": 32,
+    "cartouches": 64,
+    "squareCoffers": 16,
+    "giltPetals": 512,
+    "triangles": 273648,
+    "batches": 3,
+    "asset": "caisson-vines.glb"
+  },
+  "removedMuralFasteners": 2
+}

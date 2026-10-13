@@ -1,0 +1,40 @@
+<!doctype html><html lang="zh"><meta charset="utf-8"><title>接触阴影缓存核验</title><style>body{margin:0;background:#222;color:#eee;font:13px monospace}pre{white-space:pre-wrap;padding:12px;max-width:1200px}canvas{display:block}</style>
+<script type="importmap">{"imports":{"three":"../dist/vendor/three/three.module.js","three/addons/":"../dist/vendor/three/addons/"}}</script><pre id="result">核验中…</pre><script type="module">
+import * as THREE from 'three';import {CachedSSAOPass} from '../dist/cached-ao.js';
+const width=640,height=400,renderer=new THREE.WebGLRenderer({antialias:false});renderer.setSize(width,height);renderer.setPixelRatio(1);renderer.info.autoReset=false;document.body.prepend(renderer.domElement);
+const scene=new THREE.Scene();scene.background=new THREE.Color('#87958c');const camera=new THREE.PerspectiveCamera(45,width/height,.1,80);camera.position.set(12,13,19);camera.lookAt(0,0,0);
+const group=new THREE.Group();scene.add(group);const material=new THREE.MeshNormalMaterial(),geometry=new THREE.SphereGeometry(.42,32,24);
+for(let z=-8;z<=8;z++)for(let x=-8;x<=8;x++){const mesh=new THREE.Mesh(geometry,material);mesh.position.set(x*.9,.5+((x+z+24)%3)*.16,z*.9);group.add(mesh);}
+const floor=new THREE.Mesh(new THREE.PlaneGeometry(40,40),material);floor.rotation.x=-Math.PI/2;scene.add(floor);
+const read=new THREE.WebGLRenderTarget(width,height),write=read.clone(),pass=new CachedSSAOPass(scene,camera,width,height,16);pass.kernelRadius=.45;pass.minDistance=.001;pass.maxDistance=.07;pass.renderToScreen=false;
+const pixels=()=>{const p=new Uint8Array(width*height*4);renderer.readRenderTargetPixels(read,0,0,width,height,p);return p;};
+function base(){renderer.setRenderTarget(read);renderer.render(scene,camera);}
+function frame(force=false){base();pass.invalidated||=force;pass.render(renderer,write,read);return pixels();}
+function difference(a,b){let channels=0,max=0;for(let i=0;i<a.length;i++){const d=Math.abs(a[i]-b[i]);if(d)channels++;max=Math.max(max,d);}return {channels,max};}
+const cases=[];frame(true);
+for(const [name,change]of [
+ ['stationary',()=>{}],['parent-transform',()=>{group.position.x=.25;}],['object-hidden',()=>{group.children[50].visible=false;}],
+ ['geometry-update',()=>{const g=group.children[40].geometry.clone();g.translate(0,.3,0);group.children[40].geometry=g;}],
+ ['camera-motion',()=>{camera.position.x+=.4;camera.lookAt(0,0,0);}],['projection',()=>{camera.fov=49;camera.updateProjectionMatrix();}],
+ ['ao-radius',()=>{pass.kernelRadius=.56;}],['restore-visibility',()=>{group.children[50].visible=true;}]
+]){change();const start=pass.captures,actual=frame(false),fresh=frame(true);cases.push({name,...difference(actual,fresh),capturesBeforeReference:pass.captures-start-1});}
+document.querySelector('#result').textContent=JSON.stringify({stage:'gpu-timing',cases},null,2);
+const gl=renderer.getContext(),ext=gl.getExtension('EXT_disjoint_timer_query_webgl2');let timerFailed=false;
+const tick=()=>new Promise(resolve=>setTimeout(resolve,10));
+async function sample(force){
+ base();pass.invalidated||=force;renderer.info.reset();const q=ext&&!timerFailed?gl.createQuery():null;
+ if(q)gl.beginQuery(ext.TIME_ELAPSED_EXT,q);const start=performance.now();pass.render(renderer,write,read);const cpuMs=performance.now()-start;if(q)gl.endQuery(ext.TIME_ELAPSED_EXT);
+ const info={cpuMs,drawCalls:renderer.info.render.calls,triangles:renderer.info.render.triangles,gpuMs:null};
+ if(q){gl.flush();let ready=false;for(let i=0;i<90;i++){await tick();if(gl.getQueryParameter(q,gl.QUERY_RESULT_AVAILABLE)){ready=true;break;}}
+  if(ready&&!gl.getParameter(ext.GPU_DISJOINT_EXT))info.gpuMs=gl.getQueryParameter(q,gl.QUERY_RESULT)/1e6;else timerFailed=true;gl.deleteQuery(q);}
+ return info;
+}
+for(let i=0;i<8;i++)await sample(true);
+const fresh=[],reused=[];
+for(let block=0;block<4;block++)for(const force of block%2?[false,true]:[true,false])for(let i=0;i<12;i++)(force?fresh:reused).push(await sample(force));
+function median(a){const values=a.filter(v=>v!==null).sort((a,b)=>a-b);return values.length?values[Math.floor(values.length/2)]:null;}
+function summarize(a){return {samples:a.length,gpuMs:median(a.map(v=>v.gpuMs)),cpuMs:median(a.map(v=>v.cpuMs)),drawCalls:median(a.map(v=>v.drawCalls)),triangles:median(a.map(v=>v.triangles))};}
+const report={cases,pixelEquivalent:cases.every(c=>c.channels===0),isolatedAO:{width,height,fresh:summarize(fresh),reused:summarize(reused)},scope:'Controlled AO-only pass. Not an end-to-end temple frame-rate benchmark.'};
+document.querySelector('#result').textContent=JSON.stringify(report,null,2);
+renderer.setRenderTarget(null);renderer.render(scene,camera);
+</script></html>

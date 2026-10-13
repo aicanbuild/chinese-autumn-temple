@@ -1,0 +1,4 @@
+<!doctype html><meta charset="utf-8"><title>寺院 GPU 计时能力</title><pre id="result">检查</pre><script>
+const canvas=document.createElement('canvas'),gl=canvas.getContext('webgl2'),ext=gl?.getExtension('EXT_disjoint_timer_query_webgl2');
+document.querySelector('#result').textContent=JSON.stringify({webgl2:!!gl,timerQuery:!!ext,queryBits:ext?gl.getQuery(ext.TIME_ELAPSED_EXT,ext.QUERY_COUNTER_BITS_EXT):null,contextLost:gl?.isContextLost()},null,2);
+</script>

@@ -1,0 +1,27 @@
+{
+  "width": 1536,
+  "height": 1024,
+  "distance": 1.0,
+  "nativeBounds": [
+    -6.1275,
+    6.1175,
+    3.475,
+    10.725
+  ],
+  "receiverHeight": 1.0702,
+  "inputs": {
+    "temple.glb": "89f13f4b2565ebf149d4ab929336f2f3e898ef0cd467134b87edced141c68a2f",
+    "sanctuary.glb": "ae10c4c8e865e61d8082f49b8ca266df15d419c9cc728b3d1fccf180ba44ccde",
+    "sanctuary-floor.glb": "62ab0d66695658e39d60d5b4de3be467669a37ee78a6ecd465cf97985d8d7900",
+    "incense-vessel.glb": "54b23c51a13ed935c9582163fc18e583888feb25ca5eef423f12c543a847c392",
+    "altar-brocade.glb": "300d54ca75d2550f493fc1ed0ac729cf8bade27fea023bae4a99d17f05a1513d",
+    "door-backs.glb": "b8894fdc787c10c428519187619e762f2d1567b04e2a2ab65358e286cebace15",
+    "sculpture.glb": "c2ec8eb5796be112874d90ed977fdf88e8dfe0f22ccbe2a8154e58084e7112a3",
+    "guardian-lions.glb": "e52e84069b31dc8ab6eb2af1ea37ab6e4e03544d4bafcbd4be98d3a22b863195",
+    "lotus-surfaces.glb": "f5ba2db9a1c85c9d6deff8f487c0b58fcdb6e68726549c9834cc28df70efc374",
+    "aureole-relief.glb": "ed39577addcef29dd221f301ac6b39a0da44a0d525e2d353ee10aefefe0797dd",
+    "candle-wax.glb": "06ac902ff0d99b147127e0554f54d74a4bb4fba66504f59c8cabb936dd74b282",
+    "wooden-fish.glb": "c62b29cc20be6a00fbb899c43ab7f845d5efeff579980b5156975766a44ab276"
+  },
+  "textureSha256": "a723a0793d5190bfafc2e4808ce6ef04dcd8d07303687620c0ee17c2c2db3c21"
+}

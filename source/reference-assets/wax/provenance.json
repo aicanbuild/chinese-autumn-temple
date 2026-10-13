@@ -1,0 +1,6 @@
+{
+  "source": "Own original sanctuary geometry",
+  "commit": "52a8b2243e229888e42c5f25ef42dd10fd120ff4",
+  "sourceSHA256": "489fd8ddce4a46658d90431fbcd153a4db6e356bfdfcf01763c24db8b6443cb0",
+  "purpose": "Frozen geometry for local before/after candle QA; not shipped."
+}

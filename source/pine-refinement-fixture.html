@@ -1,0 +1,26 @@
+<!doctype html><meta charset="utf-8"><title>松针近景对照</title>
+<style>body{margin:0;background:#30382d;color:#eee;font:13px monospace}button{padding:9px;margin:6px}pre{white-space:pre-wrap}</style>
+<script type="importmap">{"imports":{"three":"../dist/vendor/three/three.module.js","three/addons/":"../dist/vendor/three/addons/"}}</script>
+<button id="before" disabled>原松针</button><button id="after" disabled>调整后</button><pre id="result">加载…</pre>
+<script type="module">
+import * as T from 'three';
+import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
+import {DRACOLoader} from 'three/addons/loaders/DRACOLoader.js';
+import {HDRLoader} from 'three/addons/loaders/HDRLoader.js';
+try{
+const r=new T.WebGLRenderer({antialias:true});r.setSize(1000,650);r.setPixelRatio(1);r.toneMapping=T.ACESFilmicToneMapping;r.toneMappingExposure=.83;r.shadowMap.enabled=true;r.shadowMap.type=T.PCFSoftShadowMap;document.body.append(r.domElement);
+const scene=new T.Scene();scene.background=new T.Color('#858e7e');
+const load=new GLTFLoader().setDRACOLoader(new DRACOLoader().setDecoderPath('../dist/vendor/three/addons/libs/draco/gltf/'));
+const [old,fresh,trees,hdr]=await Promise.all([load.loadAsync('../evidence/pine-crowns-before.glb'),load.loadAsync('../dist/assets/pine-crowns.glb'),load.loadAsync('../dist/assets/garden-trees.glb'),new HDRLoader().loadAsync('../dist/assets/autumn-forest.hdr')]);
+const pm=new T.PMREMGenerator(r);scene.environment=pm.fromEquirectangular(hdr).texture;scene.environmentRotation.y=.7;scene.environmentIntensity=.8;pm.dispose();hdr.dispose();
+for(const root of [old.scene,fresh.scene]){root.traverse(o=>{if(o.isMesh){o.visible=o.name.startsWith('Pine_0_')||o.name.startsWith('Pine 0 ');o.castShadow=o.receiveShadow=true;o.material.side=T.DoubleSide;o.material.envMapIntensity=.4;}});scene.add(root);}
+// Exporter sanitizes names; preserve only the first specimen trunk.
+trees.scene.traverse(o=>{if(o.isMesh){o.visible=/Cloud.?pine.?00/.test(o.name);o.material=new T.MeshStandardMaterial({color:'#564534',roughness:.9});o.castShadow=o.receiveShadow=true;}});scene.add(trees.scene);
+const ground=new T.Mesh(new T.PlaneGeometry(30,30),new T.MeshStandardMaterial({color:'#68714b',roughness:1}));ground.rotation.x=-Math.PI/2;ground.receiveShadow=true;scene.add(ground);
+const sun=new T.DirectionalLight('#ffe7c2',5.2);sun.position.set(-24,21,10);sun.target.position.set(-7,1,0);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);Object.assign(sun.shadow.camera,{left:-7,right:7,top:7,bottom:-7,near:.5,far:75});sun.shadow.normalBias=.015;scene.add(sun,sun.target,new T.HemisphereLight('#d2e5ee','#3a4329',.3));
+const camera=new T.PerspectiveCamera(45,1000/650,.05,100);camera.position.set(-3.1,3.2,6);camera.lookAt(-7.1,1.9,-.5);
+function draw(after){old.scene.visible=!after;fresh.scene.visible=after;r.render(scene,camera);document.querySelector('#result').textContent=JSON.stringify({mode:after?'refined':'original',calls:r.info.render.calls,triangles:r.info.render.triangles});}
+for(const id of ['before','after'])document.querySelector('#'+id).disabled=false;
+document.querySelector('#before').onclick=()=>draw(false);document.querySelector('#after').onclick=()=>draw(true);draw(true);
+}catch(e){document.querySelector('#result').textContent=e.stack;console.error(e);}
+</script>

@@ -1,0 +1,21 @@
+<!doctype html><html lang="zh"><meta charset="utf-8"><title>织金供巾近景</title><style>body{margin:0;background:#242720;color:#e9e1cb;font:14px sans-serif}button{margin:10px;padding:8px 18px}pre{white-space:pre-wrap}canvas{display:block}</style><script type="importmap">{"imports":{"/dist/candlelight.js":"/dist/candlelight.js?continuous-wax=1","three":"../dist/vendor/three/three.module.js","three/addons/":"../dist/vendor/three/addons/"}}</script><button id="before" disabled>原供台</button><button id="after" disabled>织金供巾</button><button id="top" disabled>桌沿侧面</button><pre id="state">加载模型…</pre><script type="module">
+import {installAltarBrocade} from '../dist/altar-brocade.js?sheen=2';import * as THREE from 'three';import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';import {DRACOLoader} from 'three/addons/loaders/DRACOLoader.js';import {HDRLoader} from 'three/addons/loaders/HDRLoader.js';import {installSanctuary} from '../dist/sanctuary.js';import {installCandleWaxGeometry} from '../dist/candlelight.js';import {installLotusSurfaces} from '../dist/lotus-surfaces.js?core=2';import {createSanctuaryLighting} from '../dist/sanctuary-lighting.js';
+try{
+const renderer=new THREE.WebGLRenderer({antialias:true});renderer.setSize(1280,640);renderer.setPixelRatio(1);renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=.83;renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;document.body.append(renderer.domElement);
+const loader=new GLTFLoader().setDRACOLoader(new DRACOLoader().setDecoderPath('../dist/vendor/three/addons/libs/draco/gltf/'));
+const [full,wax,lotus,reference,layout,hdr,brocade]=await Promise.all([loader.loadAsync('../dist/assets/sanctuary.glb'),loader.loadAsync('../dist/assets/candle-wax.glb'),loader.loadAsync('../dist/assets/lotus-surfaces.glb?core=2'),loader.loadAsync('./reference-assets/lotus/before.glb'),fetch('../dist/assets/sanctuary.json?continuous-wax=1').then(r=>r.json()),new HDRLoader().loadAsync('../dist/assets/autumn-forest.hdr'),loader.loadAsync('../dist/assets/altar-brocade.glb')]);
+const pmrem=new THREE.PMREMGenerator(renderer),environment=pmrem.fromEquirectangular(hdr).texture;pmrem.dispose();hdr.dispose();
+function make(modified){
+ const scene=new THREE.Scene();scene.background=new THREE.Color('#697267');scene.environment=environment;scene.environmentIntensity=.4;scene.environmentRotation.y=.7;
+ const asset=full.scene.clone(true);asset.traverse(o=>{if(o.isMesh){o.geometry=o.geometry.clone();o.material=o.material.clone();}});
+ installCandleWaxGeometry(asset,wax.scene);installLotusSurfaces(asset,lotus.scene);
+ const candles=installSanctuary(new THREE.Group(),asset,layout,scene);candles.update(12);
+ createSanctuaryLighting(scene);if(modified)installAltarBrocade(brocade.scene.clone(true),scene);
+ const sun=new THREE.DirectionalLight('#ffe7c2',5.2);sun.position.set(-24,21,10);sun.target.position.set(0,0,-1);sun.castShadow=true;sun.shadow.mapSize.set(4096,4096);Object.assign(sun.shadow.camera,{left:-26,right:26,top:26,bottom:-26,near:.5,far:75});sun.shadow.bias=-.00035;sun.shadow.normalBias=.027;scene.add(sun,sun.target,new THREE.HemisphereLight('#d2e5ee','#3a4329',.3));return scene;
+}
+const oldScene=make(false),newScene=make(true),camera=new THREE.PerspectiveCamera(43,2,.03,120);let scene=newScene;
+function draw(name,top=false){camera.position.set(...(top?[-1.63,2.03,-7.27]:[-2.15,2.15,-6.65]));camera.lookAt(-2.16,1.79,-7.77);renderer.render(scene,camera);document.querySelector('#state').textContent=JSON.stringify({view:name,triangles:renderer.info.render.triangles,flames:4});}
+for(const id of ['before','after','top'])document.querySelector('#'+id).disabled=false;
+document.querySelector('#before').onclick=()=>{scene=oldScene;draw('original-altar');};document.querySelector('#after').onclick=()=>{scene=newScene;draw('brocade-altar');};document.querySelector('#top').onclick=()=>{scene=newScene;draw('side-view',true);};draw('brocade-altar');
+}catch(e){document.querySelector('#state').textContent=e.stack;console.error(e);}
+</script></html>

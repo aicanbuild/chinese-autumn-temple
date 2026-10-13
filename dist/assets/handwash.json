@@ -1,0 +1,21 @@
+{
+  "preservedObjects": 10151,
+  "meshes": 8,
+  "position": [
+    -3.7,
+    0.2,
+    15.6
+  ],
+  "waterY": 1.23,
+  "innerRadius": 0.53,
+  "ladleRest": [
+    -3.58,
+    1.505,
+    15.88
+  ],
+  "spout": [
+    -3.9,
+    1.7,
+    15.41
+  ]
+}

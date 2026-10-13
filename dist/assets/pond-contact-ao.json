@@ -1,0 +1,20 @@
+{
+  "width": 2560,
+  "height": 1536,
+  "distance": 0.45,
+  "nativeBounds": [
+    -11.5,
+    11.5,
+    -12.7,
+    1.1
+  ],
+  "stones": 517,
+  "inputs": {
+    "pond-stones.json": "76bf3975579e1e778e9689143af34c5bfec92b8f1987da8bea470b71c48d90e7",
+    "pond-stones.glb": "d9bcdf7fb5880ed402eadf0851ef67d98c85ec2e99c67201d5aa4649d3aa1540",
+    "pond-basin.glb": "aa185b7eb2407d9f79c00603ef1510e0cc20e458a45483cd95821339749138e3",
+    "bridge.glb": "5fb738e1686e62f1aa42081586b815b81f9196b7acb08dbc636e36f53782c7ea",
+    "pond-lotus.glb": "b6a59d46b081716a895ed4ef3334fcb5a0b8162d82ddae4c1426b0b21a249814"
+  },
+  "textureSha256": "b47c36b01f51a7badb0ce1871ccaa274fea1f51e071694900aab1e3050a9ffb9"
+}

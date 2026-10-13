@@ -1,0 +1,15 @@
+# Furnished specular capture for sanctuary paving
+
+The existing shared room probe excluded the sculpture and incense vessel to avoid their coarse self-reflections. The same exclusion incorrectly removed those objects from the stone floor's reflections. Floor shading now retains the original probe for diffuse irradiance and samples a second, furnished capture for specular radiance only. The sculpture/vessel and other room materials continue using the original probe.
+
+`captureHallReflections` accepts `specularRoots`; the app selects the three stone-floor materials. Both captures use the same position (0, 2.8, -6.8), face size 128 and scene state, before assigning either environment to materials. The second capture restores the excluded furnishings and refreshes their shadows while continuing to hide water. Originally hidden objects remain hidden. All visibility and renderer state is restored if either capture fails; partially created targets are released. The targets share their scene lifetime and are both disposed by the returned owner.
+
+The floor shader substitutes only the sampler in `getIBLRadiance`; `getIBLIrradiance` remains unchanged. PMREM roughness filtering, box projection, stone normals, AO atlas, primary UVs and roughness maps remain in place. Identical CubeUV dimensions are checked because Three's generated sampling constants derive from the primary environment map. No Blender asset or texture was edited.
+
+This adds one six-face capture and PMREM filtering at startup, one persistent environment target and one sampler binding for three materials. It adds no per-frame capture, texture lookup count, mesh geometry or draw batch. Startup cost and GPU memory increase; this is not a frame-rate optimization.
+
+The synthetic real-WebGL ray fixture places a red furnishing behind the camera, visible only through a mirror. The old probe gives blue background [0,4,255]; the furnished specular path gives red [248,2,7]. Four actual temple views have unchanged triangle/draw counts and identical spotlight shadow bytes. Suppressing specular radiance alone makes the before/after images byte-identical, proving the diffuse lighting was retained. The full app reports two initialization captures and three selected floor materials with no warning/error logs. 211 automated tests pass, including failure cleanup, material isolation and mismatched atlas rejection.
+
+Evidence: `evidence/floor-reflections-browser.json`, `floor-reflections-rays.json`, fixed before/after pictures and full-scene screenshot. The actual-model fixture omits some newest decorative replacement geometry and full-scene postprocessing; integrated visual QA covers the complete app.
+
+This remains a static box-projected environment approximation. It does not provide exact off-wall object parallax, planar-mirror correctness, animated flame/smoke reflections, or ray-traced visibility. The floor deliberately remains honed stone rather than a sharp mirror. Whole-scene commercial AAA fidelity and performance remain incomplete.

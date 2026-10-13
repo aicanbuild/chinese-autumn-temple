@@ -1,0 +1,27 @@
+<!doctype html><html><meta charset="utf-8"><title>水面折射光学验证</title><style>body{background:#222;color:#ddd;font:13px monospace}pre{white-space:pre-wrap}</style><pre id="result">渲染中…</pre><script type="importmap">{"imports":{"three":"../dist/vendor/three/three.module.js","three/addons/":"../dist/vendor/three/addons/"}}</script><script type="module">
+import * as T from 'three';import {Water} from 'three/addons/objects/Water2.js';import {installWaterRefraction} from '../dist/water-refraction.js';
+try{
+const size=257,renderer=new T.WebGLRenderer({antialias:false});renderer.setSize(size,size);renderer.setPixelRatio(1);renderer.toneMapping=T.NoToneMapping;document.body.append(renderer.domElement);
+const scene=new T.Scene(),camera=new T.PerspectiveCamera(60,1,.01,50),target=new T.WebGLRenderTarget(size,size),normal=new T.DataTexture(new Uint8Array([128,128,255,255]),1,1);normal.needsUpdate=true;
+const floor=new T.Mesh(new T.PlaneGeometry(30,30,160,160),new T.MeshBasicMaterial());floor.rotation.x=-Math.PI/2;scene.add(floor);floor.material.onBeforeCompile=shader=>{shader.vertexShader='varying vec3 testWorld;\n'+shader.vertexShader;shader.vertexShader=shader.vertexShader.replace('#include <project_vertex>','#include <project_vertex>\n testWorld=(modelMatrix*vec4(transformed,1.)).xyz;');shader.fragmentShader='varying vec3 testWorld;\n'+shader.fragmentShader;shader.fragmentShader=shader.fragmentShader.replace('vec4 diffuseColor = vec4( diffuse, opacity );','vec4 diffuseColor=vec4((testWorld.z+4.)/8.,(testWorld.x+4.)/8.,.2,1.);');};
+const fragment=`uniform sampler2D tRefractionMap;uniform sampler2D tRefractionDepth;uniform mat4 refractionInverseViewProjection;uniform mat4 refractionViewProjection;uniform float enabled;varying vec4 vCoord;varying vec3 vToEye;
+void main(){vec2 uv=vCoord.xy/vCoord.w;gl_FragColor=texture2D(tRefractionMap,uv);if(enabled>1.5){float depth=texture2D(tRefractionDepth,uv).r;vec4 p=refractionInverseViewProjection*vec4(uv*2.-1.,depth*2.-1.,1.);vec3 air=normalize(p.xyz/p.w-cameraPosition);vec3 origin=cameraPosition+air*(-cameraPosition.y/air.y);vec3 direction=refract(air,vec3(0.,1.,0.),1./1.333);vec4 a=refractionViewProjection*vec4(origin,1.),b=refractionViewProjection*vec4(direction,0.);float ndc=depth*2.-1.;float travel=(a.z-ndc*a.w)/(ndc*b.w-b.z);gl_FragColor=vec4(depth<.99999?1.:0.,travel/4.,0.,1.);}}`;
+let projection,enabledPass=true;
+const water=new Water(new T.PlaneGeometry(14,14),{shader:{...Water.WaterShader,fragmentShader:fragment},normalMap0:normal,normalMap1:normal,refractionDepth:true,textureWidth:1024,textureHeight:1024,flowSpeed:0,captureFilter:mode=>enabledPass?projection?.capture(mode):null});water.rotation.x=-Math.PI/2;water.material.uniforms.enabled={value:1};scene.add(water);
+projection=installWaterRefraction(scene,0);
+function render(enabled){enabledPass=enabled>0;water.material.uniforms.enabled.value=enabled;renderer.setRenderTarget(target);renderer.render(scene,camera);const p=new Uint8Array(4);renderer.readRenderTargetPixels(target,128,128,1,1,p);return [...p];}
+const cases=[];
+for(const eye of [[0,3,5],[2,4,3],[-3,1.2,5],[0,6,.001]])for(const depth of [.22,.85,1.53]){
+ camera.position.set(...eye);camera.lookAt(0,0,0);camera.updateMatrixWorld();floor.position.y=-depth;
+ const incoming=camera.position.clone().negate().normalize(),eta=1/1.333;const ray=new T.Vector3(incoming.x*eta,-Math.sqrt(1-eta*eta*(1-incoming.y*incoming.y)),incoming.z*eta),travel=depth/-ray.y,point=ray.clone().multiplyScalar(travel);
+ const expected=[(point.z+4)/8*255,(point.x+4)/8*255,.2*255],before=render(0),after=render(1),hit=render(2),error=Math.max(...expected.map((v,i)=>Math.abs(v-after[i])));
+ cases.push({eye,depth,expected,unrefracted:before,refracted:after,rayHit:hit[0]===255,travelError:Math.abs(hit[1]/255*4-travel),maxChannelError:error,passed:hit[0]===255&&error<2&&Math.abs(hit[1]/255*4-travel)<.035});
+}
+// A shallow object intersects the bent ray before the deeper floor. It must
+// take the depth and colour of the object, not the initial floor sample.
+camera.position.set(0,3,5);camera.lookAt(0,0,0);camera.updateMatrixWorld();floor.position.y=-1.53;
+const direction=new T.Vector3(0,-Math.sqrt(1-(5/Math.sqrt(34)/1.333)**2),-5/Math.sqrt(34)/1.333),ball=new T.Mesh(new T.SphereGeometry(.12,48,32),new T.MeshBasicMaterial({color:0xff0000}));ball.position.copy(direction).multiplyScalar(.65);scene.add(ball);const ballProjection=installWaterRefraction(ball,0);const originalCapture=projection.capture;projection.capture=mode=>{const a=originalCapture(mode),b=ballProjection.capture(mode);return()=>{b();a();};};
+const objectBefore=render(0),objectAfter=render(1),objectHit=render(2);const objectCase={unrefracted:objectBefore,refracted:objectAfter,hit:objectHit,passed:objectAfter[0]>250&&objectAfter[1]<2&&objectAfter[2]<2&&objectBefore[1]>50};
+const report={passed:cases.every(c=>c.passed)&&objectCase.passed,cases,shallowObject:objectCase,scope:'Actual geometry-projected Water/Refractor captures; analytic Snell ray against tessellated horizontal floors, original depth recovery, then shallow sphere.'};document.querySelector('#result').textContent=JSON.stringify(report,null,2);renderer.setRenderTarget(null);water.material.uniforms.enabled.value=1;renderer.render(scene,camera);
+}catch(e){document.querySelector('#result').textContent=e.stack;console.error(e);}
+</script></html>

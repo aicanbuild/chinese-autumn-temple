@@ -1,0 +1,12 @@
+import test from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs';import * as T from '../dist/vendor/three/three.module.js';
+const code=fs.readFileSync(new URL('../dist/pond-lotus-motion.js',import.meta.url),'utf8').replace(/^import.*$/gm,'').replaceAll('export function','function').replaceAll('export const','const');const {lotusSway,applyPondLotusSway,installPondLotusMotion,POND_SWAY_PADDING}=new Function('THREE',code+';return {lotusSway,applyPondLotusSway,installPondLotusMotion,POND_SWAY_PADDING}')(T);
+test('grounded roots stay fixed, water height is stable and all phases stay inside declared motion bounds',()=>{
+ for(let t=0;t<=3600;t+=1.73)for(const x of [-7,-6,7,8])for(const y of [-1.72,-1.1,-1.05,-.8,0,.2,.6]){const p=lotusSway(x,y,5.3,t).position;assert.equal(p[1],y);assert.ok(Math.hypot(p[0]-x,p[2]-5.3)<POND_SWAY_PADDING);if(y<=-1.05)assert.deepEqual(p,[x,y,5.3]);}
+});
+test('analytic deformation Jacobian agrees with independent finite differences for correct moving normals',()=>{
+ for(let i=0;i<100;i++){const p=[-7+i*.15,-1+i*.017,4+i*.023],time=i*.731,{jacobian}=lotusSway(...p,time);for(let axis=0;axis<3;axis++){const a=[...p],b=[...p];a[axis]-=1e-5;b[axis]+=1e-5;const lo=lotusSway(...a,time).position,hi=lotusSway(...b,time).position;for(let row=0;row<3;row++)assert.ok(Math.abs((hi[row]-lo[row])/2e-5-jacobian[row*3+axis])<1e-8);}}
+});
+test('color, directional shadow, point shadow and SSAO use the same phase; non-lotus AO attributes are zero',()=>{
+ const root=new T.Group(),m=new T.Mesh(new T.PlaneGeometry(1,1),new T.MeshStandardMaterial()),time={value:12},normal=new T.MeshNormalMaterial();root.add(m);m.userData.waterClipStatic=true;const stats=installPondLotusMotion(root,time,normal);assert.equal(stats.meshes,1);assert.equal(m.userData.waterClipStatic,false);assert.equal(m.userData.aoAnimated,true);assert.deepEqual(normal.defaultAttributeValues.pondSwayWeight,[0,0]);
+ const outputs=[];for(const material of [m.material,m.customDepthMaterial,m.customDistanceMaterial,normal]){const shader={uniforms:{},vertexShader:'#include <beginnormal_vertex>\n#include <begin_vertex>'};material.onBeforeCompile(shader);assert.equal(shader.uniforms.pondSwayTime,time);outputs.push(shader.vertexShader);}assert.ok(outputs.every(s=>s===outputs[0]));assert.ok(m.geometry.boundingSphere.radius>Math.SQRT1_2);root.position.x=1;assert.throws(()=>installPondLotusMotion(root,time,normal),/world-space/);
+});

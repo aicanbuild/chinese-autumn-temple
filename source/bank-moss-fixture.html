@@ -1,0 +1,31 @@
+<!doctype html><meta charset="utf-8"><title>池岸立体苔藓近景</title>
+<style>body{margin:0;background:#30382d;color:#eee;font:13px monospace}button{padding:9px;margin:6px}pre{white-space:pre-wrap}</style>
+<script type="importmap">{"imports":{"three":"../dist/vendor/three/three.module.js","three/addons/":"../dist/vendor/three/addons/"}}</script>
+<button id="before" disabled>原池岸</button><button id="after" disabled>立体苔藓</button><button id="angle" disabled>切换机位</button><pre id="result">加载…</pre>
+<script type="module">
+import * as T from 'three';import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';import {DRACOLoader} from 'three/addons/loaders/DRACOLoader.js';import {HDRLoader} from 'three/addons/loaders/HDRLoader.js';import {installPondStones} from '../dist/pond-stones.js';import {installGardenGround} from '../dist/garden-ground.js';import {createStaticCellCulling} from '../dist/static-mesh-cells.js';
+try{
+const r=new T.WebGLRenderer({antialias:true});r.setSize(1000,650);r.setPixelRatio(1);r.toneMapping=T.ACESFilmicToneMapping;r.toneMappingExposure=.83;r.shadowMap.enabled=true;r.shadowMap.type=T.PCFSoftShadowMap;document.body.append(r.domElement);
+const s=new T.Scene();s.background=new T.Color('#86978a');
+const loader=new GLTFLoader().setDRACOLoader(new DRACOLoader().setDecoderPath('../dist/vendor/three/addons/libs/draco/gltf/'));
+const [temple,terrain,stone,moss,layout,hdr]=await Promise.all(['temple','terrain','pond-stones','bank-moss'].map(n=>loader.loadAsync('../dist/assets/'+n+'.glb')).concat([fetch('../dist/assets/pond-stones.json').then(r=>r.json()),new HDRLoader().loadAsync('../dist/assets/autumn-forest.hdr')]));
+const pm=new T.PMREMGenerator(r);s.environment=pm.fromEquirectangular(hdr).texture;pm.dispose();hdr.dispose();s.environmentIntensity=.8;
+terrain.scene.traverse(o=>{if(o.isMesh){o.receiveShadow=true;o.material.roughness=.94;o.material.envMapIntensity=.35;for(const k of ['map','normalMap'])if(o.material[k])o.material[k].anisotropy=8;}});s.add(terrain.scene);
+const manager=new T.LoadingManager();manager.setURLModifier(url=>url.replace('./assets/','../dist/assets/'));await installGardenGround(terrain.scene,manager);installPondStones(temple.scene,stone.scene,layout,s);
+terrain.scene.updateMatrixWorld(true);let uvErrorMax=0,uvErrorSum=0,uvSamples=0;const groundPoint=new T.Vector3();terrain.scene.traverse(o=>{if(!o.isMesh)return;const p=o.geometry.attributes.position,uv=o.geometry.attributes.uv;for(let i=0;i<p.count;i++){groundPoint.fromBufferAttribute(p,i).applyMatrix4(o.matrixWorld);if(Math.hypot(groundPoint.x,groundPoint.z)>18)continue;const error=Math.hypot(uv.getX(i)*7-groundPoint.x,(1-uv.getY(i))*7+groundPoint.z);uvErrorMax=Math.max(uvErrorMax,error);uvErrorSum+=error;uvSamples++;}});
+let triangles=0,degenerate=0,minArea=Infinity;const a=new T.Vector3(),b=new T.Vector3(),c=new T.Vector3();
+moss.scene.traverse(o=>{if(o.isMesh){o.castShadow=o.receiveShadow=true;o.material.side=T.DoubleSide;o.material.envMapIntensity=.4;const g=o.geometry,p=g.attributes.position,idx=g.index;for(let i=0;i<idx.count;i+=3){a.fromBufferAttribute(p,idx.getX(i));b.fromBufferAttribute(p,idx.getX(i+1)).sub(a);c.fromBufferAttribute(p,idx.getX(i+2)).sub(a);const area=b.cross(c).length()*.5;minArea=Math.min(minArea,area);if(area<1e-12)degenerate++;triangles++;}}});s.add(moss.scene);
+const sun=new T.DirectionalLight('#ffe7c2',5.2);sun.position.set(-24,21,10);sun.target.position.set(6,.1,11.7);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);Object.assign(sun.shadow.camera,{left:-3,right:3,top:3,bottom:-3,near:.5,far:75});sun.shadow.bias=-.000015;sun.shadow.normalBias=.001;s.add(sun,sun.target,new T.HemisphereLight('#d2e5ee','#3a4329',.3));
+const camera=new T.PerspectiveCamera(45,1000/650,.015,100);let after=true,angle=0;const views=[[[6.25,.7,12.55],[6.75,.22,11.75]],[[3.4,.8,13.45],[3.98,.22,12.6]],[[5.4,1.8,14.2],[5,.15,11.5]]];
+const cells=createStaticCellCulling(moss.scene,camera,{cellSize:1.5});
+const cullingProof=[],gl=r.getContext();
+for(let view=0;view<views.length;view++){
+ camera.position.set(...views[view][0]);camera.lookAt(...views[view][1]);const pixels=[],counts=[];
+ for(const enabled of [false,true]){cells.enabled=enabled;r.render(s,camera);const data=new Uint8Array(1000*650*4);gl.readPixels(0,0,1000,650,gl.RGBA,gl.UNSIGNED_BYTE,data);pixels.push(data);counts.push(r.info.render.triangles);}
+ let changed=0,max=0;for(let i=0;i<pixels[0].length;i++){const delta=Math.abs(pixels[0][i]-pixels[1][i]);if(delta)changed++;max=Math.max(max,delta);}cullingProof.push({view,changedChannels:changed,maxChannelError:max,fullTriangles:counts[0],culledTriangles:counts[1]});
+}
+
+function draw(){moss.scene.visible=after;camera.position.set(...views[angle][0]);camera.lookAt(...views[angle][1]);r.render(s,camera);document.querySelector('#result').textContent=JSON.stringify({mode:after?'moss':'original',angle,uvMappingErrorMaxMeters:uvErrorMax,uvMappingErrorMeanMeters:uvErrorSum/uvSamples,uvMappingSamples:uvSamples,triangles,degenerate,minTriangleArea:minArea,calls:r.info.render.calls,renderTriangles:r.info.render.triangles,culling:cells.sample(),cullingProof});}
+for(const id of ['before','after','angle'])document.querySelector('#'+id).disabled=false;document.querySelector('#before').onclick=()=>{after=false;draw()};document.querySelector('#after').onclick=()=>{after=true;draw()};document.querySelector('#angle').onclick=()=>{angle=(angle+1)%views.length;draw()};draw();
+}catch(e){document.querySelector('#result').textContent=e.stack;console.error(e)}
+</script>

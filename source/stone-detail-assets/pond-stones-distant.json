@@ -1,0 +1,52 @@
+{
+  "sourceSHA256": "fce4bfb781c40f19824591a736ac4148edd0bb29bffcb7437a03fe98ffecb426",
+  "fullAssetSHA256": "e0fd5e0eda793d63d5349264a496049bcd6b67ae37beb8be3580aca3cf8e5095",
+  "sampledErrorLimit": 0.004,
+  "runtimeErrorBudget": 0.008,
+  "variants": [
+    {
+      "kind": 0,
+      "fullTriangles": 5120,
+      "distantTriangles": 3072,
+      "maximumSampledError": 0.0035066900309175253,
+      "ratio": 0.6
+    },
+    {
+      "kind": 1,
+      "fullTriangles": 5120,
+      "distantTriangles": 3072,
+      "maximumSampledError": 0.0028838871512562037,
+      "ratio": 0.6
+    },
+    {
+      "kind": 2,
+      "fullTriangles": 5120,
+      "distantTriangles": 2304,
+      "maximumSampledError": 0.003888443112373352,
+      "ratio": 0.45
+    },
+    {
+      "kind": 3,
+      "fullTriangles": 5120,
+      "distantTriangles": 3072,
+      "maximumSampledError": 0.0028121669311076403,
+      "ratio": 0.6
+    },
+    {
+      "kind": 4,
+      "fullTriangles": 5120,
+      "distantTriangles": 3072,
+      "maximumSampledError": 0.0034652394242584705,
+      "ratio": 0.6
+    },
+    {
+      "kind": 5,
+      "fullTriangles": 5120,
+      "distantTriangles": 3840,
+      "maximumSampledError": 0.002612785203382373,
+      "ratio": 0.75
+    }
+  ],
+  "sourceUnchanged": true,
+  "bytes": 167128
+}

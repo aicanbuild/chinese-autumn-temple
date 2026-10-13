@@ -1,0 +1,29 @@
+<!doctype html><meta charset="utf-8"><title>苔藓贴图编码对照</title>
+<style>body{margin:0;background:#333;color:white;font:13px monospace}button{margin:5px;padding:8px}</style>
+<script type="importmap">{"imports":{"three":"../dist/vendor/three/three.module.js","three/addons/":"../dist/vendor/three/addons/"}}</script>
+<button id="before" disabled>原始 JPEG</button><button id="after" disabled>交付 JPEG</button><button id="angle" disabled>切换机位</button><pre id="result">加载…</pre>
+<script type="module">
+import * as T from 'three';import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';import {DRACOLoader} from 'three/addons/loaders/DRACOLoader.js';import {HDRLoader} from 'three/addons/loaders/HDRLoader.js';import {installGardenGround} from '../dist/garden-ground.js';
+try{
+const r=new T.WebGLRenderer({antialias:true});r.setSize(1000,650);r.setPixelRatio(1);r.toneMapping=T.ACESFilmicToneMapping;r.toneMappingExposure=.83;document.body.append(r.domElement);
+const s=new T.Scene();s.background=new T.Color('#a7b6a9');
+const loader=new GLTFLoader().setDRACOLoader(new DRACOLoader().setDecoderPath('../dist/vendor/three/addons/libs/draco/gltf/'));
+const [asset,hdr]=await Promise.all([loader.loadAsync('../dist/assets/terrain.glb'),new HDRLoader().loadAsync('../dist/assets/autumn-forest.hdr')]);
+const pm=new T.PMREMGenerator(r);s.environment=pm.fromEquirectangular(hdr).texture;pm.dispose();hdr.dispose();s.environmentIntensity=.8;
+const roots=[asset.scene,asset.scene.clone(true)];roots.forEach(root=>{root.traverse(o=>{if(o.isMesh){o.material=o.material.clone();o.material.roughness=.94;o.material.envMapIntensity=.35;for(const k of ['map','normalMap'])if(o.material[k])o.material[k].anisotropy=8;}});s.add(root);});
+for(let i=0;i<2;i++){const manager=new T.LoadingManager();manager.setURLModifier(url=>url.replace('./assets/','../dist/assets/').replace(i===0?'-runtime.jpg':'__unchanged__','.jpg'));await installGardenGround(roots[i],manager);}
+const sun=new T.DirectionalLight('#ffe7c2',5.2);sun.position.set(-24,21,10);s.add(sun,new T.HemisphereLight('#d2e5ee','#3a4329',.3));const camera=new T.PerspectiveCamera(48,1000/650,.06,200);
+let after=true,angle=0;
+const gl=r.getContext();
+const views=[[[6,1.9,16],[5.7,.1,18.7]],[[6,.5,16],[5.7,.1,16.5]],[[0,14,39],[0,0,22]]];
+function pose(){camera.position.set(...views[angle][0]);camera.lookAt(...views[angle][1]);}
+function select(value){roots[0].visible=!value;roots[1].visible=value;}
+const comparisons=[];
+for(angle=0;angle<views.length;angle++){pose();const buffers=[];for(const version of [false,true]){select(version);r.render(s,camera);const pixels=new Uint8Array(1000*650*4);gl.readPixels(0,0,1000,650,gl.RGBA,gl.UNSIGNED_BYTE,pixels);buffers.push(pixels);}
+ let max=0,sum=0,changed=0,over2=0;for(let i=0;i<buffers[0].length;i++){if(i%4===3)continue;const d=Math.abs(buffers[0][i]-buffers[1][i]);max=Math.max(max,d);sum+=d;if(d)changed++;if(d>2)over2++;}comparisons.push({angle,maxChannelError:max,meanChannelError:sum/(1000*650*3),changedChannels:changed,channelsOver2:over2});}
+angle=0;
+function draw(){pose();select(after);r.render(s,camera);document.querySelector('#result').textContent=JSON.stringify({mode:after?'delivery':'original',angle,comparisons,triangles:r.info.render.triangles,calls:r.info.render.calls});}
+
+for(const id of ['before','after','angle'])document.querySelector('#'+id).disabled=false;document.querySelector('#before').onclick=()=>{after=false;draw()};document.querySelector('#after').onclick=()=>{after=true;draw()};document.querySelector('#angle').onclick=()=>{angle=(angle+1)%views.length;draw()};draw();
+}catch(e){document.querySelector('#result').textContent=e.stack;console.error(e)}
+</script>

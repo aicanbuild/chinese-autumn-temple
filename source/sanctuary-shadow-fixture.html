@@ -1,0 +1,13 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><title>Sanctuary shadow verification</title><style>body{background:#222;color:#ddd;font:15px monospace}canvas{width:640px;height:480px}pre{white-space:pre-wrap}</style><h1>Sanctuary key: actual shadow occlusion</h1><pre id="result">Rendering…</pre><script type="importmap">{"imports":{"three":"../dist/vendor/three/three.module.js"}}</script><script type="module">
+import * as THREE from 'three';import {createSanctuaryLighting} from '../dist/sanctuary-lighting.js';import {installBoundedLocalLighting} from '../dist/local-lighting.js';installBoundedLocalLighting();
+const renderer=new THREE.WebGLRenderer({antialias:false,preserveDrawingBuffer:true});renderer.setSize(320,240);renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=.83;document.body.append(renderer.domElement);
+const scene=new THREE.Scene();scene.background=new THREE.Color('#202020');const lighting=createSanctuaryLighting(scene,{shadowSize:1024});
+const floor=new THREE.Mesh(new THREE.PlaneGeometry(7,6),new THREE.MeshStandardMaterial({color:'#9e9d91',roughness:.4}));floor.rotation.x=-Math.PI/2;floor.position.set(0,1.07,-7.5);floor.receiveShadow=true;scene.add(floor);
+const box=new THREE.Mesh(new THREE.BoxGeometry(.9,1.0,.9),new THREE.MeshStandardMaterial({color:'#905737',roughness:.5}));box.position.set(0,1.57,-7.7);box.castShadow=true;box.receiveShadow=true;scene.add(box);
+const camera=new THREE.OrthographicCamera(-3.5,3.5,2.625,-2.625,.1,20);camera.position.set(0,9,-7.5);camera.up.set(0,0,-1);camera.lookAt(0,1.07,-7.5);
+const target=new THREE.WebGLRenderTarget(320,240);function pixels(){renderer.setRenderTarget(target);renderer.render(scene,camera);const data=new Uint8Array(320*240*4);renderer.readRenderTargetPixels(target,0,0,320,240,data);return data;}
+lighting.key.shadow.intensity=0;const before=pixels();lighting.key.shadow.intensity=1;const after=pixels();let darker=0,maxDrop=0,totalDrop=0;
+for(let i=0;i<before.length;i+=4){const delta=(before[i]+before[i+1]+before[i+2]-after[i]-after[i+1]-after[i+2])/3;if(delta>10)darker++;maxDrop=Math.max(maxDrop,delta);totalDrop+=Math.max(0,delta);}
+const report={passed:darker>100&&maxDrop>20,darkenedPixels:darker,maxBrightnessDrop:maxDrop,meanPositiveDrop:totalDrop/(320*240),shadowMap:[lighting.key.shadow.map.width,lighting.key.shadow.map.height],source:'actual WebGL pixels; shadow intensity 0 vs 1; identical geometry and lighting'};
+document.querySelector('#result').textContent=JSON.stringify(report,null,2);renderer.setRenderTarget(null);renderer.render(scene,camera);
+</script></html>

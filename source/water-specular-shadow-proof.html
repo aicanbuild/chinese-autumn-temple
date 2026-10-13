@@ -1,0 +1,32 @@
+<!doctype html><html><meta charset="utf-8"><title>池水日光遮挡验证</title><style>body{background:#222;color:#ddd;font:13px monospace}pre{white-space:pre-wrap}</style><pre id="result">验证中…</pre><script type="importmap">{"imports":{"three":"../dist/vendor/three/three.module.js","three/addons/":"../dist/vendor/three/addons/"}}</script><script type="module">
+import * as T from 'three';import {Water} from 'three/addons/objects/Water2.js';import {depthWaterFragment} from '../dist/water-optics.js?specular=2';import {impactWaterFragment,createPondMotion} from '../dist/pond-motion.js?specular=1';import {installWaterSunlight} from '../dist/water-sunlight.js';
+try{
+const renderer=new T.WebGLRenderer({antialias:false});renderer.setSize(257,257);renderer.setPixelRatio(1);renderer.toneMapping=T.NoToneMapping;renderer.shadowMap.enabled=true;renderer.shadowMap.type=T.PCFSoftShadowMap;document.body.append(renderer.domElement);
+const scene=new T.Scene();scene.background=new T.Color(.04,.08,.12);const camera=new T.PerspectiveCamera(40,1,.05,60);camera.position.set(3,4,0);camera.lookAt(0,-.025,0);
+const target=new T.WebGLRenderTarget(257,257,{type:T.FloatType}),normal=new T.DataTexture(new Uint8Array([128,128,255,255]),1,1);normal.needsUpdate=true;
+const floor=new T.Mesh(new T.PlaneGeometry(40,40),new T.MeshBasicMaterial({color:new T.Color(.04,.06,.08)}));floor.rotation.x=-Math.PI/2;floor.position.y=-1;scene.add(floor);
+const sun=new T.DirectionalLight(0xffffff,3.7);sun.position.set(-3,4,0);sun.target.position.set(0,-.025,0);sun.castShadow=true;sun.shadow.mapSize.set(256,256);Object.assign(sun.shadow.camera,{left:-4,right:4,top:4,bottom:-4,near:.1,far:20});sun.shadow.bias=-.00035;sun.shadow.normalBias=.027;scene.add(sun,sun.target);
+const blocker=new T.Mesh(new T.BoxGeometry(.8,.1,.8),new T.MeshBasicMaterial({color:0x553322}));blocker.position.set(-1.2,1.585,0);blocker.castShadow=true;scene.add(blocker);
+const water=new Water(new T.PlaneGeometry(12,12),{shader:{...Water.WaterShader,fragmentShader:impactWaterFragment(depthWaterFragment(Water.WaterShader.fragmentShader))},normalMap0:normal,normalMap1:normal,refractionDepth:true,textureWidth:512,textureHeight:512,reflectivity:.025,flowSpeed:0});water.rotation.x=-Math.PI/2;water.position.y=-.025;scene.add(water);
+const motion=createPondMotion(water.material,sun),binding=installWaterSunlight(water,sun);let enabled=true;const capture=water.onBeforeRender;water.onBeforeRender=function(...args){capture.apply(this,args);if(!enabled)binding.uniforms.waterSunShadowEnabled.value=0;};
+const reference=new T.Mesh(new T.PlaneGeometry(12,12),new T.MeshLambertMaterial({color:new T.Color(.1,.1,.1)}));reference.rotation.x=-Math.PI/2;reference.position.y=-.025;reference.receiveShadow=true;reference.visible=false;scene.add(reference);
+function render(shadows,useReference=false){enabled=shadows;water.visible=!useReference;reference.visible=useReference;motion.update(18);renderer.setRenderTarget(target);renderer.render(scene,camera);const p=new Float32Array(4);renderer.readRenderTargetPixels(target,128,128,1,1,p);return [...p];}
+const near=(a,b,t=.0002)=>a.slice(0,3).every((x,i)=>Math.abs(x-b[i])<t),cases=[];
+blocker.visible=false;const litOld=render(false),litNew=render(true);cases.push({name:'unoccluded lobe unchanged',passed:near(litOld,litNew),before:litOld,after:litNew});
+blocker.visible=true;const blockedOld=render(false),blockedNew=render(true);sun.intensity=0;const baseOld=render(false),baseNew=render(true);sun.intensity=3.7;
+cases.push({name:'occluder removes direct lobe, retaining captured water radiance',passed:near(blockedNew,baseNew)&&blockedOld[0]-blockedNew[0]>.20,before:blockedOld,after:blockedNew,withoutSun:baseNew});
+cases.push({name:'zero sun leaves reflection and refraction unchanged',passed:near(baseOld,baseNew),before:baseOld,after:baseNew});
+sun.shadow.intensity=.35;const partial=render(true),expected=blockedOld.map((x,i)=>x*.65+blockedNew[i]*.35);cases.push({name:'shadow intensity respected',passed:near(partial,expected),actual:partial,expected});sun.shadow.intensity=1;
+renderer.shadowMap.enabled=false;const disabled=render(true);cases.push({name:'disabled renderer shadows do not sample a stale map',passed:near(disabled,blockedOld),actual:disabled});renderer.shadowMap.enabled=true;
+sun.castShadow=false;const noCast=render(true);cases.push({name:'disabled sun shadow gives unoccluded lobe',passed:near(noCast,blockedOld),actual:noCast});sun.castShadow=true;
+sun.visible=false;const noSun=render(true);cases.push({name:'hidden sun contributes no artificial lobe',passed:near(noSun,baseNew),actual:noSun});sun.visible=true;
+// Compare the actual water attenuation with Three's independently shaded
+// opaque Lambert receiver through the same soft shadow edge.
+blocker.visible=false;const referenceLit=render(true,true)[0];blocker.visible=true;const edge=[];
+for(const z of [.33,.365,.39,.415,.44,.47]){blocker.position.z=z;const old=render(false),shadowed=render(true);sun.intensity=0;const base=render(true);sun.intensity=3.7;const waterVisibility=(shadowed[0]-base[0])/(old[0]-base[0]),opaqueVisibility=render(true,true)[0]/referenceLit;edge.push({z,waterVisibility,opaqueVisibility,error:Math.abs(waterVisibility-opaqueVisibility)});}
+cases.push({name:'PCF soft edge agrees with opaque receivers',passed:edge.every(x=>x.error<.002)&&edge.some(x=>x.waterVisibility>.05&&x.waterVisibility<.95),samples:edge});
+sun.position.z+=12;sun.target.position.z+=12;const outsideOld=render(false),outsideNew=render(true);cases.push({name:'outside shadow frustum remains unoccluded',passed:near(outsideOld,outsideNew),before:outsideOld,after:outsideNew});
+document.querySelector('#result').textContent=JSON.stringify({passed:cases.every(c=>c.passed),cases,scope:'Real WebGL Water captures and existing directional shadow map; float target centre pixel, independent Lambert receiver comparison.'},null,2);
+renderer.setRenderTarget(null);water.visible=true;reference.visible=false;renderer.render(scene,camera);
+}catch(e){document.querySelector('#result').textContent=e.stack;console.error(e);}
+</script></html>

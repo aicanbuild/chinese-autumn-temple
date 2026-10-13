@@ -1,0 +1,18 @@
+<!doctype html><html lang="zh"><meta charset="utf-8"><title>青瓷供杯近景</title><style>body{margin:0;background:#202c28;color:#e7e3ce;font:15px sans-serif}canvas{display:block}pre{position:absolute;bottom:10px;left:18px}button{position:absolute;top:16px;left:16px;padding:9px 16px}</style><script type="importmap">{"imports":{"three":"../dist/vendor/three/three.module.js","three/addons/":"../dist/vendor/three/addons/"}}</script><button id="view">查看内壁与水面</button><pre id="result">正在读取实际网页模型…</pre><script type="module">
+import * as THREE from 'three';import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';import {DRACOLoader} from 'three/addons/loaders/DRACOLoader.js';import {RoomEnvironment} from 'three/addons/environments/RoomEnvironment.js';
+const loader=new GLTFLoader().setDRACOLoader(new DRACOLoader().setDecoderPath('../dist/vendor/three/addons/libs/draco/gltf/'));
+const asset=await loader.loadAsync('../dist/assets/sanctuary.glb');const renderer=new THREE.WebGLRenderer({antialias:true});renderer.setSize(1280,720);renderer.setPixelRatio(1);renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.shadowMap.enabled=true;document.body.append(renderer.domElement);
+const scene=new THREE.Scene();scene.background=new THREE.Color('#273c33');const env=new THREE.PMREMGenerator(renderer);scene.environment=env.fromScene(new RoomEnvironment(),.04).texture;
+const camera=new THREE.PerspectiveCamera(35,1280/720,.001,5);let high=false;function view(){camera.position.set(.16,high?.28:.125,.25);camera.lookAt(0,.037,0);}view();document.querySelector('#view').onclick=()=>{high=!high;view();};
+scene.add(new THREE.HemisphereLight('#fff4da','#2a3931',.6));const sun=new THREE.DirectionalLight('#ffe3b4',3);sun.position.set(-.2,.4,.2);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);Object.assign(sun.shadow.camera,{left:-.2,right:.2,top:.2,bottom:-.2,near:.01,far:2});sun.shadow.bias=-.00001;sun.target.position.set(0,.04,0);scene.add(sun,sun.target);
+const floor=new THREE.Mesh(new THREE.PlaneGeometry(3,3),new THREE.MeshStandardMaterial({color:'#564534',roughness:.5}));floor.rotation.x=-Math.PI/2;floor.receiveShadow=true;floor.position.y=-.0001;scene.add(floor);
+let parts=0,triangles=0,waterMeshes=0;const v=new THREE.Vector3();asset.scene.updateMatrixWorld(true);
+asset.scene.traverse(o=>{if(!o.isMesh)return;const g=o.geometry,index=g.index,p=g.attributes.position,keep=[];
+ for(let n=0;n<(index?index.count:p.count);n+=3){const ids=[0,1,2].map(k=>index?index.getX(n+k):n+k);if(ids.every(i=>{v.fromBufferAttribute(p,i).applyMatrix4(o.matrixWorld);return Math.abs(v.x)<.065&&Math.abs(v.z+7.99)<.065&&v.y>1.8949&&v.y<1.969;}))keep.push(...ids);}
+ if(!keep.length)return;const copy=g.clone();copy.setIndex(keep);copy.applyMatrix4(o.matrixWorld);copy.translate(0,-1.895,7.99);copy.computeBoundingSphere();const m=o.material.clone(),mesh=new THREE.Mesh(copy,m);mesh.castShadow=mesh.receiveShadow=true;mesh.material.envMapIntensity=.55;
+ if(m.name.includes('clear offering water')){m.side=THREE.FrontSide;m.depthWrite=false;m.ior=1.333;m.envMapIntensity=.9;mesh.castShadow=false;waterMeshes++;}
+ scene.add(mesh);parts++;triangles+=keep.length/3;
+});
+document.querySelector('#result').textContent=JSON.stringify({actualExport:true,centerCupMaterialParts:parts,triangles,waterMeshes,view:'Original dimensions: 114 mm diameter, 73 mm height; native table support 1.895 m'},null,2);
+function frame(){renderer.render(scene,camera);requestAnimationFrame(frame);}frame();
+</script></html>

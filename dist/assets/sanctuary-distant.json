@@ -1,0 +1,24 @@
+{
+  "originalSHA256": "80daf0553667728f37899246dda0da2b5b3d0617ed8faf0042d6253f6bbfa00a",
+  "sampledErrorLimit": 0.003,
+  "runtimeErrorBudget": 0.006,
+  "reducedParts": 1045,
+  "retainedParts": 1298,
+  "maximumSampledError": 0.002922395011410117,
+  "materials": {
+    "Sanctuary | hand burnished gold": {
+      "triangles": 219093,
+      "vertices": 116944
+    },
+    "Sanctuary | ivory lotus petals": {
+      "triangles": 28482,
+      "vertices": 14483
+    },
+    "Sanctuary | oxblood lacquer": {
+      "triangles": 73668,
+      "vertices": 38220
+    }
+  },
+  "sourceUnchanged": true,
+  "bytes": 1931944
+}

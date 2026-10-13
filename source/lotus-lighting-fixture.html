@@ -1,0 +1,22 @@
+<!doctype html><html><meta charset="utf-8"><title>Lotus optical validation</title><style>body{background:#252925;color:#eee;font:14px monospace}pre{white-space:pre-wrap}</style><script type="importmap">{"imports":{"three":"../dist/vendor/three/three.module.js"}}</script><pre id="result">Rendering thin-shell light and shadow cases…</pre><script type="module">
+import * as THREE from 'three';import {finishLotusLighting} from '../dist/lotus-lighting.js';import {installBoundedLocalLighting} from '../dist/local-lighting.js';
+try{
+installBoundedLocalLighting();const renderer=new THREE.WebGLRenderer({antialias:false});renderer.setSize(256,256);renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.outputColorSpace=THREE.LinearSRGBColorSpace;document.body.append(renderer.domElement);
+const target=new THREE.WebGLRenderTarget(128,128),scene=new THREE.Scene();scene.background=new THREE.Color(0);const camera=new THREE.PerspectiveCamera(40,1,.01,10);camera.position.z=2;camera.lookAt(0,0,0);
+const geometry=new THREE.BoxGeometry(1,1,.00045);geometry.setAttribute('_lotus_transmittance',new THREE.BufferAttribute(new Float32Array(geometry.attributes.position.count).fill(.3),1));geometry.setAttribute('_lotus_thickness',new THREE.BufferAttribute(new Float32Array(geometry.attributes.position.count).fill(.00045),1));
+const original=new THREE.MeshStandardMaterial({color:'#ffffff',roughness:1,side:THREE.DoubleSide}),thin=finishLotusLighting(original,THREE.ShaderChunk.lights_fragment_begin),shell=new THREE.Mesh(geometry,thin);shell.castShadow=true;shell.receiveShadow=true;scene.add(shell);
+const blocker=new THREE.Mesh(new THREE.BoxGeometry(1.6,1.6,.02),new THREE.MeshStandardMaterial());blocker.castShadow=true;blocker.position.z=-.6;scene.add(blocker);
+let light;
+function lightFor(kind,front=false){if(light){scene.remove(light);if(light.target)scene.remove(light.target);light.shadow?.map?.dispose();}light=kind==='point'?new THREE.PointLight('#ffffff',8,10,2):kind==='spot'?new THREE.SpotLight('#ffffff',8,10,.5,.1,2):new THREE.DirectionalLight('#ffffff',2);light.position.set(0,0,front?2:-2);light.castShadow=true;light.shadow.mapSize.set(1024,1024);light.shadow.bias=0;light.shadow.normalBias=.004;if(kind==='directional')Object.assign(light.shadow.camera,{left:-1,right:1,top:1,bottom:-1,near:.01,far:5});else{light.shadow.camera.near=.01;light.shadow.camera.far=5;}scene.add(light);if(light.target)scene.add(light.target);}
+function sample(){renderer.setRenderTarget(target);renderer.render(scene,camera);const pixels=new Uint8Array(128*128*4);renderer.readRenderTargetPixels(target,0,0,128,128,pixels);let mean=0,max=0;for(let y=48;y<80;y++)for(let x=48;x<80;x++){const value=pixels[(y*128+x)*4];mean+=value;max=Math.max(max,value);}return{mean:mean/1024,max,draws:renderer.info.render.calls};}
+const cases=[];
+for(const kind of ['directional','spot','point']){
+ lightFor(kind);blocker.visible=false;shell.material=original;const opaque=sample();shell.material=thin;const backlit=sample();blocker.visible=true;const shadowed=sample();blocker.position.z=-.022;const closeShadow=sample();blocker.position.z=-.6;blocker.visible=false;light.intensity=0;const dark=sample();
+ lightFor(kind,true);shell.material=original;const frontOpaque=sample();shell.material=thin;const frontThin=sample();
+ cases.push({kind,opaque,backlit,shadowed,closeShadow,dark,frontOpaque,frontThin,passed:opaque.max===0&&backlit.mean>20&&shadowed.max<=1&&closeShadow.max<=1&&dark.max===0&&frontThin.mean<frontOpaque.mean});
+}
+lightFor('directional',true);camera.position.z=-2;camera.lookAt(0,0,0);shell.material=thin;blocker.visible=false;const reversed=sample();
+geometry.attributes._lotus_transmittance.array.fill(0);geometry.attributes._lotus_transmittance.needsUpdate=true;camera.position.z=2;camera.lookAt(0,0,0);shell.material=original;const zeroBaseline=sample();shell.material=thin;const zeroTransmission=sample();
+const report={passed:cases.every(c=>c.passed)&&reversed.mean>20&&zeroBaseline.mean===zeroTransmission.mean,cases,reversed,zeroBaseline,zeroTransmission};document.querySelector('#result').textContent=JSON.stringify(report,null,2);document.querySelector('#result').dataset.validation=JSON.stringify(report);renderer.setRenderTarget(null);renderer.render(scene,camera);
+}catch(error){document.querySelector('#result').textContent=error.stack;console.error(error);}
+</script></html>

@@ -1,0 +1,21 @@
+{
+  "originalSHA256": "21f183850d6fa894a13743e88bc651e6ed0f77c16756c20060b090edd5c05fe3",
+  "sampledErrorLimit": 0.00075,
+  "runtimeErrorBudget": 0.0015,
+  "reducedParts": 121,
+  "retainedParts": 9,
+  "maximumSampledError": 0.0007021041819825768,
+  "materials": {
+    "Sanctuary | living lotus leaves": {
+      "triangles": 19896,
+      "vertices": 9960
+    },
+    "Sanctuary | living lotus petals": {
+      "triangles": 72056,
+      "vertices": 36460
+    }
+  },
+  "fullTriangles": 413568,
+  "sourceUnchanged": true,
+  "bytes": 369228
+}

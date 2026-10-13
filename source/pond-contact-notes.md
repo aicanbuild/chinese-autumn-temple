@@ -1,0 +1,15 @@
+# Baked local contact visibility beneath the pond
+
+Sun shadows alone did not ground sediment stones in the bridge's shade. A separate Blender bake document now contains the actual sediment surface, 157 authored bed stones and ten bridge piers. The AO shader measures hemisphere visibility only within 0.45 m; Cycles uses 32 bake samples and 64 AO samples. The 2560 × 1536 non-color PNG is 844768 bytes. The editable, packed `source/池底接触光照.blend` remains local; original temple, bridge and stone geometry/files were not modified.
+
+`bake_pond_contact.py` loads these objects from the authoritative temple, removes only the copied basin's hidden underside to avoid overlapping bake UVs, and bakes an emission representation of the AO factor. Native XY bounds are [-11.5, 11.5] × [-12.7, 1.1]. This follows Blender's documented [Ambient Occlusion node](https://docs.blender.org/manual/en/latest/render/shader_nodes/input/ao.html): hemisphere occlusion with a finite distance. It is an ambient approximation, not global illumination or underwater transport tracing.
+
+`verify_pond_contact.py` reopens the saved bake, checks all 157 placements against the shipped layout, and independently casts 2048 cosine-weighted rays at each of 53 points. Mean absolute AO-factor difference is 0.001252, maximum 0.004517. The emitted metadata hashes the texture, basin, stones, layout and bridge; tests reject stale inputs so future geometry edits require rebaking and rechecking.
+
+The browser adds a separate `uv1` attribute to the existing sediment and assigns the atlas to the standard `aoMap` channel with 0.85 intensity. World XZ is mapped back to native XY, using the PNG's vertical flip. The original photographic UVs, normals, roughness and material textures are preserved. Three's AO path attenuates indirect diffuse/specular light; direct sunlight and caustics are not multiplied by this map. The existing water refraction renders the resulting sediment normally.
+
+The six-view real-WebGL fixture compares only AO intensity. Shadow pixels, triangle counts and draw counts are unchanged. With environment and hemisphere lighting disabled, all final color bytes are identical, independently confirming direct-light isolation. Four views containing affected sediment gain localized darkness; two views without it remain pixel-identical. Evidence is in `evidence/pond-contact-browser.json` and before/after screenshots. The full automated suite has 203 passing tests.
+
+This adds one texture sample on sediment fragments, a mipmapped texture and a second UV buffer, but no mesh batches, light, shadow map or scene capture. No whole-scene FPS improvement is claimed. It is static contact visibility tied to fixed stone/pier placement, limited to the basin receiver: no moving-object AO, inter-stone AO on rock surfaces, refraction-aware ambient hemisphere, or long-range bridge occlusion. Overall AAA fidelity and performance remain incomplete.
+
+Rebuild using Blender `--python-exit-code 1 --python source/bake_pond_contact.py`, then run `source/verify_pond_contact.py` the same way. Recheck the browser fixture before rebuilding the versioned runtime.

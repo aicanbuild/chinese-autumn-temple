@@ -1,0 +1,19 @@
+{
+  "fieldSlabs": 112,
+  "borderSlabs": 44,
+  "parts": 157,
+  "jointMeters": 0.004,
+  "arrisRadiusMeters": 0.0025,
+  "topMeters": 1.07,
+  "jointBedMeters": 1.062,
+  "boundsNative": [
+    -6.1275,
+    6.1175,
+    3.475,
+    10.725,
+    0.94,
+    1.07
+  ],
+  "textureMeters": 1.6,
+  "materials": 3
+}

@@ -1,0 +1,11 @@
+{
+  "tiles": 2864,
+  "preservedNonRoofFaces": 1304,
+  "crossSections": 12,
+  "thicknessMeters": 0.008,
+  "toeRiseMeters": 0.014,
+  "vertices": 411904,
+  "faces": 218968,
+  "preservedObjects": 6632,
+  "nonRoofGeometryPreserved": true
+}

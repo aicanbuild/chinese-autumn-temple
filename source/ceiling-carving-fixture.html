@@ -1,0 +1,20 @@
+<!doctype html><html lang="zh"><meta charset="utf-8"><title>顶棚雕刻近景核验</title>
+<style>body{margin:0;background:#1f2421;color:#eee;font:14px sans-serif}canvas{display:block}nav{position:absolute;bottom:16px;left:18px}button{padding:9px 16px;margin-right:8px}output{margin-left:16px}</style>
+<script type="importmap">{"imports":{"three":"../dist/vendor/three/three.module.js","three/addons/":"../dist/vendor/three/addons/"}}</script>
+<nav><button id="whole">整体藻井</button><button id="detail">单格雕刻近景</button><output id="result">加载实际 GLB…</output></nav>
+<script type="module">
+import * as THREE from 'three';import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';import {DRACOLoader} from 'three/addons/loaders/DRACOLoader.js';import {RoomEnvironment} from 'three/addons/environments/RoomEnvironment.js';
+const loader=new GLTFLoader().setDRACOLoader(new DRACOLoader().setDecoderPath('../dist/vendor/three/addons/libs/draco/gltf/'));
+const asset=await loader.loadAsync('../dist/assets/sanctuary.glb');const renderer=new THREE.WebGLRenderer({antialias:true});renderer.setSize(1280,720);renderer.setPixelRatio(1);renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=.83;renderer.shadowMap.enabled=true;document.body.append(renderer.domElement);
+const scene=new THREE.Scene();scene.background=new THREE.Color('#1f2421');const env=new THREE.PMREMGenerator(renderer);scene.environment=env.fromScene(new RoomEnvironment(),.04).texture;
+const camera=new THREE.PerspectiveCamera(66,1280/720,.03,20);camera.up.set(0,0,-1);
+const sun=new THREE.DirectionalLight('#ffe4ba',2.6);sun.position.set(-1.5,2.8,-5.6);sun.target.position.set(0,4.8,-7.1);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);Object.assign(sun.shadow.camera,{left:-6,right:6,top:6,bottom:-6,near:.1,far:15});sun.shadow.bias=-.00003;scene.add(sun,sun.target,new THREE.AmbientLight('#c5d1cf',.65));
+const point=new THREE.PointLight('#f2dab0',3.2,4.1,2);point.position.set(0,4.43,-7.1);scene.add(point);
+const v=new THREE.Vector3();let triangles=0,batches=0;asset.scene.updateMatrixWorld(true);
+asset.scene.traverse(o=>{if(!o.isMesh)return;const g=o.geometry,p=g.attributes.position,index=g.index,keep=[];
+ for(let n=0;n<(index?index.count:p.count);n+=3){const ids=[0,1,2].map(k=>index?index.getX(n+k):n+k);if(ids.every(i=>v.fromBufferAttribute(p,i).applyMatrix4(o.matrixWorld).y>4.12))keep.push(...ids);}
+ if(!keep.length)return;const copy=g.clone();copy.setIndex(keep);copy.applyMatrix4(o.matrixWorld);copy.computeBoundingSphere();const mat=o.material.clone();mat.side=THREE.DoubleSide;mat.envMapIntensity=mat.metalness>.6?.68:.32;const mesh=new THREE.Mesh(copy,mat);mesh.castShadow=mesh.receiveShadow=true;scene.add(mesh);triangles+=keep.length/3;batches++;
+});
+function view(detail){camera.fov=detail?48:66;camera.position.set(detail?3.05:0,detail?3.35:1.9,detail?-6.9:-7.1);camera.lookAt(detail?3.05:0,detail?4.31:5,detail?-7.22:-7.1);camera.updateProjectionMatrix();document.querySelector('#result').textContent=JSON.stringify({actualExport:true,ceilingTriangles:triangles,batches,view:detail?'coffer':'caisson'});renderer.render(scene,camera);}
+document.querySelector('#whole').onclick=()=>view(false);document.querySelector('#detail').onclick=()=>view(true);view(false);
+</script></html>

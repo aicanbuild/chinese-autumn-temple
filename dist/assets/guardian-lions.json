@@ -1,0 +1,22 @@
+{
+  "source": "https://zenodo.org/records/10335910",
+  "creator": "vmccurley",
+  "license": "CC BY 4.0",
+  "adaptation": "cropped roadside plinth, reduced scan, scaled, mirrored, resized albedo and authored roughness",
+  "count": 2,
+  "trianglesPerLion": 128949,
+  "height": 1.46,
+  "pedestalTop": 0.925,
+  "bounds": [
+    [
+      3.1697542667388916,
+      1.6422804594039917,
+      0.925000011920929
+    ],
+    [
+      -4.030259609222412,
+      1.6422804594039917,
+      0.925000011920929
+    ]
+  ]
+}

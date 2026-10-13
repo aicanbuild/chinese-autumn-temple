@@ -1,0 +1,4 @@
+import fs from 'node:fs';import * as THREE from '../dist/vendor/three/three.module.js';
+const code=fs.readFileSync(new URL('../dist/leaf-surfaces.js',import.meta.url),'utf8').replace(/^import.*;$/gm,'').replaceAll('export function','function');const {createFallenLeafGeometry}=new Function('THREE',code+';return {createFallenLeafGeometry}')(THREE);
+const shapes=Array.from({length:6},(_,i)=>{const g=createFallenLeafGeometry(i%2,Math.floor(i/2));return {species:i%2,variant:Math.floor(i/2),positions:[...g.attributes.position.array],uv:[...g.attributes.uv.array],normals:[...g.attributes.normal.array],indices:[...g.index.array]};});
+fs.writeFileSync(new URL('./leaf-specimens.json',import.meta.url),JSON.stringify({scaleMeters:.18,shapes}));console.log(shapes.map(s=>({species:s.species,variant:s.variant,triangles:s.indices.length/3})));

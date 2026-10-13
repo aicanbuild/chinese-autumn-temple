@@ -1,0 +1,37 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><title>Temple local-light validation</title><style>body{background:#222;color:#ddd;font:16px sans-serif}canvas{width:640px;height:400px}pre{white-space:pre-wrap}</style>
+<script type="importmap">{"imports":{"three":"../dist/vendor/three/three.module.js"}}</script><h1>Temple local-light pixel validation</h1><pre id="result">Rendering fixed reference cases…</pre><script type="module">
+import * as THREE from 'three';import {boundedLocalLighting} from '../dist/local-lighting.js';
+const renderer=new THREE.WebGLRenderer({antialias:false,preserveDrawingBuffer:true});renderer.setSize(320,200);renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.shadowMap.enabled=true;document.body.append(renderer.domElement);
+const target=new THREE.WebGLRenderTarget(320,200),scene=new THREE.Scene();scene.background=new THREE.Color('#25343a');
+const camera=new THREE.PerspectiveCamera(45,1.6,.1,40);camera.position.set(0,1.2,7);camera.lookAt(0,0,0);
+const floor=new THREE.Mesh(new THREE.PlaneGeometry(18,18),new THREE.MeshStandardMaterial({color:'#908a77',roughness:.78}));floor.rotation.x=-Math.PI/2;floor.position.y=-1;floor.receiveShadow=true;scene.add(floor);
+const materials=[new THREE.MeshStandardMaterial({color:'#9e2720',roughness:.35}),new THREE.MeshPhysicalMaterial({color:'#d6a558',metalness:.85,roughness:.24,clearcoat:.7,clearcoatRoughness:.18}),new THREE.MeshPhysicalMaterial({color:'#469880',roughness:.19,clearcoat:.8,sheen:.4,sheenColor:'#7d9090'})];
+materials.forEach((mat,i)=>{const m=new THREE.Mesh(new THREE.SphereGeometry(.75,48,24),mat);m.position.x=(i-1)*1.9;m.castShadow=true;m.receiveShadow=true;scene.add(m);});
+scene.add(new THREE.HemisphereLight('#99c7de','#372c23',.45));const sun=new THREE.DirectionalLight('#fff3d9',2);sun.position.set(3,7,4);scene.add(sun);
+const points=[];for(let i=0;i<9;i++){const l=new THREE.PointLight(i%2?'#ffb678':'#91c9e0',3,1.8,2);l.position.set((i%3-1)*2,1,((i/3)|0)-1);scene.add(l);points.push(l);}
+const spot=new THREE.SpotLight('#ffd998',20,8,.4,.35,2);spot.position.set(-2,3,3);spot.target.position.set(0,0,0);spot.castShadow=true;spot.shadow.mapSize.set(256,256);scene.add(spot,spot.target);
+const original=THREE.ShaderChunk.lights_fragment_begin,optimized=boundedLocalLighting(original),all=[floor.material,...materials];let revision=0;
+function render(chunk){THREE.ShaderChunk.lights_fragment_begin=chunk;for(const m of all){m.customProgramCacheKey=()=>String(revision);m.needsUpdate=true;}revision++;renderer.setRenderTarget(target);renderer.render(scene,camera);const pixels=new Uint8Array(320*200*4);renderer.readRenderTargetPixels(target,0,0,320,200,pixels);return pixels;}
+const reports=[];for(const name of ['mixed finite lights','all local lights out of range','zero intensity','infinite point range','outside spot cone','shadowed spot']){
+ for(let i=0;i<9;i++){points[i].position.set((i%3-1)*2,1,((i/3)|0)-1);points[i].distance=1.8;points[i].intensity=3;}spot.intensity=20;spot.angle=.4;spot.distance=8;spot.castShadow=true;
+ if(name==='all local lights out of range'){points.forEach(l=>l.position.set(30,20,30));spot.distance=.2;}
+ if(name==='zero intensity'){points.forEach(l=>l.intensity=0);spot.intensity=0;}
+ if(name==='infinite point range')points.forEach(l=>l.distance=0);
+ if(name==='outside spot cone'){points.forEach(l=>l.intensity=0);spot.angle=.03;spot.target.position.set(15,0,0);}else spot.target.position.set(0,0,0);
+ scene.updateMatrixWorld(true);const a=render(original),b=render(optimized);let max=0,sum=0,changed=0;for(let i=0;i<a.length;i++){const d=Math.abs(a[i]-b[i]);max=Math.max(max,d);sum+=d;if(d)changed++;}reports.push({name,maxChannelDifference:max,meanChannelDifference:sum/a.length,changedChannels:changed});
+}
+// Compare GPU duration on the same far-lit surfaces, excluding shader compilation.
+const gl=renderer.getContext(),timer=gl.getExtension('EXT_disjoint_timer_query_webgl2');let gpu=null;
+if(timer){
+ target.setSize(640,400);points.forEach(l=>l.position.set(30,20,30));spot.distance=.2;renderer.shadowMap.autoUpdate=false;
+ function select(chunk,key){THREE.ShaderChunk.lights_fragment_begin=chunk;for(const m of all){m.customProgramCacheKey=()=>key;m.needsUpdate=true;}renderer.setRenderTarget(target);renderer.render(scene,camera);}
+ select(original,'timer-original');select(optimized,'timer-optimized');
+ async function sample(chunk,key){select(chunk,key);const query=gl.createQuery();gl.beginQuery(timer.TIME_ELAPSED_EXT,query);for(let i=0;i<12;i++)renderer.render(scene,camera);gl.endQuery(timer.TIME_ELAPSED_EXT);
+  for(let wait=0;wait<180;wait++){await new Promise(requestAnimationFrame);if(gl.getQueryParameter(query,gl.QUERY_RESULT_AVAILABLE)){const value=gl.getParameter(timer.GPU_DISJOINT_EXT)?null:gl.getQueryParameter(query,gl.QUERY_RESULT)/12/1e6;gl.deleteQuery(query);return value;}}
+  gl.deleteQuery(query);return null;
+ }
+ const baseline=[],guarded=[];for(let i=0;i<4;i++){if(i%2){guarded.push(await sample(optimized,'timer-optimized'));baseline.push(await sample(original,'timer-original'));}else{baseline.push(await sample(original,'timer-original'));guarded.push(await sample(optimized,'timer-optimized'));}}
+ gpu={scope:'640x400 fixed far-light fixture; 12 frames per sample, alternating order',baselineMs:baseline,guardedMs:guarded};
+}
+renderer.setRenderTarget(null);renderer.render(scene,camera);const result={passed:reports.every(r=>r.maxChannelDifference<=1),width:320,height:200,cases:reports,gpu};document.querySelector('#result').textContent=JSON.stringify(result,null,2);document.querySelector('#result').dataset.validation=JSON.stringify(result);
+</script></html>

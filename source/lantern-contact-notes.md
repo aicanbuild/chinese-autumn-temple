@@ -1,0 +1,11 @@
+# Stone lantern contact lighting
+
+The instanced/batched lanterns were excluded from screen-space AO, leaving carved courses, the underside of the eaves and lotus-capital joints too uniformly lit by the environment. `bake_lantern_contact.py` samples the existing full prototype BVH with 96 cosine-weighted rays per unique position/normal, a 0.32 m radius and distance falloff. It writes local visibility into a corner-domain `_lantern_occlusion` attribute. No surface is rebuilt. The native prototype and 46 shared meshes across 736 editable parts in the complete temple retain their original geometry; 8,010 existing mesh fingerprints were checked. Native backups remain local.
+
+`installLanternContact` applies the baked attribute only to indirect diffuse and environment specular lighting. Direct sun, shadows, emission and the granite PBR maps retain their previous values. Native Blender files keep the baked attribute for inspection and their existing physically rendered lighting. The attribute is currently consumed by the Three.js material, not linked into native base color.
+
+The four-material GLB grew from 1,758,116 to 1,775,104 bytes. The exporter initially expanded roughness to PNG; original color/normal/roughness image payloads were restored without touching geometry buffers. Granite helper imports are now lazy so its GLB repacker runs under Blender without needing Pillow. Four existing lantern tests pass, including custom-attribute export and per-camera batching. There are no added triangles or material batches.
+
+The comparison fixture rendered three views with environmental lighting disabled. Switching contact shading on/off changed zero framebuffer channels in all three, verifying direct lighting and emission are preserved. With environmental lighting restored, the eaves and carved joints have visible localized shading. Fixture browser logs were empty. Evidence: `lantern-contact-before.png`, `lantern-contact-after.png`, `lantern-contact-browser.json`, `lantern-contact-native.json`, and `lantern-contact-main.png` under `evidence/`.
+
+This is local, static self-occlusion. It does not bake surrounding vegetation or the lamp-to-terrain contact, and it is not a substitute for full global illumination or proof of AAA fidelity. The overall goal remains active.

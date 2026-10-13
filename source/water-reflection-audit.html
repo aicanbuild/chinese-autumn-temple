@@ -1,0 +1,27 @@
+<!doctype html><html lang="zh"><meta charset="utf-8"><title>水面树干倒影检查</title>
+<style>body{margin:0;background:#15221d;color:white;font:13px system-ui}iframe{width:100vw;height:calc(100vh - 48px);border:0}nav{height:44px;display:flex;align-items:center;gap:8px;padding:0 10px}button{padding:6px 12px}output{margin-left:10px}</style>
+<iframe src="../dist/?profile=1" title="寺院"></iframe>
+<nav><button data-view="0">背面复现</button><button data-view="1">反向角度</button><button data-view="2">掠水角度</button><button data-view="3">池塘</button><select id="channel"><option value="normal">正常水面</option><option value="reflection">仅倒影</option><option value="refraction">仅水底</option><option value="raw">原始水底</option></select><button id="bed-only">隔离水底</button><button id="compare">查看旧倒影</button><output id="status">加载中</output></nav>
+<script>
+const frame=document.querySelector('iframe'),status=document.querySelector('#status');
+const views=[[[20.0594,5.51045,-10.4357],[9.92298,2,7.21384]],[[12.8,2.8,-4],[15,0,2]],[[15.4,1.25,4.1],[14.35,-.04,.6]],[[8,4.4,13],[4,0,5.8]]];
+let app,trees=[],old=false,current=0;const draws=new Set();let reflection=false;
+function instrument(){
+ const prior=app.scene.onBeforeRender;
+ app.scene.onBeforeRender=function(renderer,scene,camera,...args){reflection=camera.position.y<0;prior.call(this,renderer,scene,camera,...args);};
+ app.scene.traverse(o=>{if(!o.isMesh)return;const prior=o.onBeforeRender;o.onBeforeRender=function(renderer,scene,camera,...args){if(reflection)draws.add((o.name||'(unnamed)')+' | '+o.material?.name+' | excluded='+o.userData.waterReflection);prior.call(this,renderer,scene,camera,...args);};});
+ const water=app.scene.getObjectByName('Reflecting clear koi pond'),material=water.material,normalShader=material.fragmentShader;
+ document.querySelector('#channel').onchange=e=>{material.fragmentShader=normalShader;if(e.target.value!=='normal')material.fragmentShader=normalShader.replace('gl_FragColor=vec4(waterRadiance,1.);','gl_FragColor=vec4('+(e.target.value==='reflection'?'reflectColor.rgb':e.target.value==='raw'?'refractColor.rgb':'submerged')+',1.);');material.needsUpdate=true;};
+ const shader=document.createElement('pre');shader.id='water-shader';shader.style.display='none';shader.textContent=normalShader;document.body.append(shader);
+ let isolate=false,hidden=[];
+ const sceneBefore=app.scene.onBeforeRender,sceneAfter=app.scene.onAfterRender;
+ app.scene.onBeforeRender=function(renderer,scene,camera,...args){sceneBefore.call(this,renderer,scene,camera,...args);if(isolate&&camera!==app.camera&&camera.matrixWorld.elements[13]>0){hidden=[];scene.traverse(o=>{if(!o.isMesh||!o.visible)return;const n=o.name||'';if(n.includes('pond sediment'))return;hidden.push(o);o.visible=false;});}};
+ app.scene.onAfterRender=function(...args){for(const o of hidden)o.visible=true;hidden=[];sceneAfter.apply(this,args);};
+ document.querySelector('#bed-only').onclick=()=>{isolate=!isolate;document.querySelector('#bed-only').textContent=isolate?'恢复岸景':'隔离水底';};
+ const details=document.createElement('pre');details.id='reflection-draws';details.style.display='none';document.body.append(details);setInterval(()=>{details.textContent=JSON.stringify([...draws]);},1000);
+}
+function view(i){current=i;const [p,t]=views[i];app.camera.position.fromArray(p);app.controls.target.fromArray(t);app.controls.minDistance=1;app.controls.update();}
+document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>view(+b.dataset.view));
+document.querySelector('#compare').onclick=()=>{old=!old;for(const o of trees)o.userData.waterReflection=old;document.querySelector('#compare').textContent=old?'恢复新水面':'查看旧倒影';};
+setInterval(()=>{app=frame.contentWindow.__temple;if(!app?.ready)return;if(!trees.length){app.scene.traverse(o=>{if(o.isMesh&&o.userData.waterReflection===false)trees.push(o);});instrument();view(0);}status.textContent=JSON.stringify({mode:old?'旧倒影':'新水面',angle:current,excluded:trees.length,visibleTrees:trees.filter(o=>o.visible).length,seconds:Math.round(app.stats.simulation.seconds)});},500);
+</script></html>

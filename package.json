@@ -1,0 +1,14 @@
+{
+  "name": "chinese-autumn-temple",
+  "version": "1.0.0",
+  "private": true,
+  "description": "An interactive autumn temple garden built with Blender and Three.js",
+  "type": "module",
+  "license": "MIT",
+  "scripts": {
+    "build": "python3 source/build_browser.py",
+    "dev": "python3 source/build_browser.py && python3 -m http.server 4188 --bind 127.0.0.1 --directory dist",
+    "check": "node --check dist/app.js",
+    "test": "node --test source/*.test.mjs"
+  }
+}

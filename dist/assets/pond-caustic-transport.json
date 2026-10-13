@@ -1,0 +1,73 @@
+{
+  "revision": 3,
+  "surfaceSlopeScale": 0.273,
+  "spanMeters": 4.0,
+  "depthsMeters": [
+    0.25,
+    0.875,
+    1.6
+  ],
+  "densityDecodeScale": 6,
+  "raysPerLayer": 4194304,
+  "resolution": 1024,
+  "sunTravelDirectionWorld": [
+    0.7114430000745027,
+    -0.6225126250651899,
+    -0.3260780417008137
+  ],
+  "imageFlipY": false,
+  "layers": [
+    {
+      "seed": 719,
+      "depths": [
+        {
+          "depth": 0.25,
+          "photonEnergy": 1.0,
+          "encodedMean": 1.0000101426068475,
+          "peak": 1.4352941176470588,
+          "standardDeviation": 0.07308741596771971
+        },
+        {
+          "depth": 0.875,
+          "photonEnergy": 1.0,
+          "encodedMean": 0.9999928418327779,
+          "peak": 4.541176470588235,
+          "standardDeviation": 0.26154278542912485
+        },
+        {
+          "depth": 1.6,
+          "photonEnergy": 1.0,
+          "encodedMean": 0.9999991697423599,
+          "peak": 5.035294117647059,
+          "standardDeviation": 0.5231910131274015
+        }
+      ]
+    },
+    {
+      "seed": 2031,
+      "depths": [
+        {
+          "depth": 0.25,
+          "photonEnergy": 1.0,
+          "encodedMean": 1.0000281165627873,
+          "peak": 1.3176470588235294,
+          "standardDeviation": 0.06967500777935662
+        },
+        {
+          "depth": 0.875,
+          "photonEnergy": 1.0,
+          "encodedMean": 0.9999989677877988,
+          "peak": 2.541176470588235,
+          "standardDeviation": 0.24413882027661468
+        },
+        {
+          "depth": 1.6,
+          "photonEnergy": 1.0,
+          "encodedMean": 1.000010434318991,
+          "peak": 5.011764705882353,
+          "standardDeviation": 0.5012011598226711
+        }
+      ]
+    }
+  ]
+}

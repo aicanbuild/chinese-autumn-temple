@@ -1,0 +1,9 @@
+# Pondside camellia leaf refinement
+
+The twelve existing low camellia shrubs now use curved, veined leaf surfaces instead of untextured diamond quads. Positions and the 950 leaves per shrub remain derived from the original garden mesh. Ivory flowers and the higher bamboo leaves remain unchanged.
+
+`build_camellia_leaves.py` updates the editable full temple and writes `池岸山茶.blend`, one reusable 23-vertex/28-triangle GLB prototype, and 11,400 placement/color records. The browser shares the existing understory color and normal textures; no new image payload is included. The leaf midrib is raised and the sides curve down, with smooth normals and modest normal-map strength. The replacement has 319,200 triangles versus 22,800 originally, and adds twelve instanced draws; this is a fidelity change, not a performance improvement.
+
+Run this script after a complete original temple rebuild. On repeat runs it reuses the saved placement records after checking the native replacement marker. Before its first run it preserves the previous full Blender file. Verification compares geometry, UVs, material assignments and transforms on all 9,771 unrelated objects before and after saving/reopening the full file. The updated full model has 9,784 objects. The standalone file was independently opened and checked for all twelve editable meshes and finite vertex coordinates.
+
+`camellia-leaves.test.mjs`, vegetation shadow instance, foliage lighting and browser build suites: eleven passing tests. The complete browser scene was inspected at pondside and leaf-close cameras with original/replacement visibility toggles in the local-only fixture built by `build_camellia_audit.py`. No browser warnings or errors were reported. `evidence/camellia-main.png` records the resulting pondside view. The fixture controls are not shipped.

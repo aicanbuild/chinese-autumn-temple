@@ -1,0 +1,17 @@
+<!doctype html><html lang="zh"><meta charset="utf-8"><title>香烟体积验证</title><style>body{background:#20251e;color:#eee;font:14px sans-serif;margin:20px}.grid{display:flex;gap:12px;flex-wrap:wrap}figure{margin:0}canvas{width:192px;height:384px;background:#131912}pre{white-space:pre-wrap}</style><h1>香烟体积 · 三方向与燃尽余烟</h1><div class="grid" id="views"></div><pre id="result">正在渲染…</pre><script type="importmap">{"imports":{"three":"../dist/vendor/three/three.module.js"}}</script><script type="module">
+import * as THREE from 'three';import {createIncenseSmoke,SMOKE_LIFETIME} from '../dist/incense-smoke.js';
+const renderer=new THREE.WebGLRenderer({alpha:true,antialias:false});renderer.setSize(256,512);renderer.setClearColor(0,0);renderer.toneMapping=THREE.ACESFilmicToneMapping;
+const scene=new THREE.Scene(),smoke=createIncenseSmoke(scene,.7),tip=new THREE.Vector3(),camera=new THREE.OrthographicCamera(-.25,.25,.75,-.75,.01,8),target=new THREE.WebGLRenderTarget(256,512),pixels=new Uint8Array(256*512*4),results=[];
+function capture(name,time,burning,angle){
+ smoke.update(time,burning,tip);camera.position.set(Math.sin(angle)*3,.7,Math.cos(angle)*3);camera.lookAt(0,.7,0);renderer.setRenderTarget(target);renderer.render(scene,camera);renderer.readRenderTargetPixels(target,0,0,256,512,pixels);
+ let count=0,lower=0,upper=0,minY=512,maxY=0,total=0;for(let y=0;y<512;y++)for(let x=0;x<256;x++){const a=pixels[(y*256+x)*4+3];if(a>2){count++;minY=Math.min(minY,y);maxY=Math.max(maxY,y);if(y<170)lower++;if(y>220)upper++;}total+=a;}
+ const result={name,count,lower,upper,minY,maxY,totalAlpha:total};results.push(result);
+ const canvas=document.createElement('canvas');canvas.width=256;canvas.height=512;const ctx=canvas.getContext('2d'),img=ctx.createImageData(256,512);
+ for(let y=0;y<512;y++)for(let x=0;x<256;x++){const a=(y*256+x)*4,b=((511-y)*256+x)*4;for(let k=0;k<3;k++)img.data[a+k]=pixels[b+3]?Math.min(255,pixels[b+k]*255/pixels[b+3]):0;img.data[a+3]=pixels[b+3];}ctx.putImageData(img,0,0);
+ const figure=document.createElement('figure'),caption=document.createElement('figcaption');caption.textContent=name;figure.append(canvas,caption);document.querySelector('#views').append(figure);return result;
+}
+const ignition=capture('刚点燃',0,true,0),rise=capture('1 秒：烟从下方上升',1,true,0),front=capture('正面',8,true,0),side=capture('侧面',8,true,Math.PI/2),oblique=capture('斜面',8,true,.7);
+capture('熄灭瞬间',8,false,0);const tail=capture('熄灭后 1 秒：下段消散',9,false,0),clear=capture('余烟消散',8+SMOKE_LIFETIME+.01,false,0);
+const passed=ignition.count===0&&rise.count>0&&rise.maxY<front.maxY&&[front,side,oblique].every(r=>r.count>80)&&tail.lower<front.lower&&tail.upper>0&&clear.count===0;
+document.querySelector('#result').textContent=JSON.stringify({passed,results},null,2);
+</script></html>

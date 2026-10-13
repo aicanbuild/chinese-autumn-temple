@@ -1,0 +1,22 @@
+<!doctype html><meta charset="utf-8"><title>荷塘轻风验证</title><style>body{margin:0;background:#25322f;color:#eee;font:13px monospace}pre{white-space:pre-wrap}</style><script type="importmap">{"imports":{"three":"../dist/vendor/three/three.module.js","three/addons/":"../dist/vendor/three/addons/"}}</script><pre id="result">加载实际荷花模型…</pre><script type="module">
+import * as T from 'three';import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';import {DRACOLoader} from 'three/addons/loaders/DRACOLoader.js';import {installPondLotusMotion,lotusSway} from '../dist/pond-lotus-motion.js';
+try{
+ const W=700,H=600,renderer=new T.WebGLRenderer({antialias:false,preserveDrawingBuffer:true});renderer.setSize(W,H);renderer.setPixelRatio(1);renderer.toneMapping=T.ACESFilmicToneMapping;renderer.shadowMap.enabled=true;renderer.shadowMap.type=T.PCFSoftShadowMap;document.body.prepend(renderer.domElement);
+ const scene=new T.Scene();scene.background=new T.Color('#b9c8c0');scene.add(new T.HemisphereLight('#e9f3fc','#6b7561',1.7));
+ const sun=new T.DirectionalLight('#fff2d5',3);sun.position.set(-8,7,11);sun.target.position.set(-6.3,0,6.9);sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);Object.assign(sun.shadow.camera,{left:-2,right:2,top:2,bottom:-2,near:.1,far:25});sun.shadow.normalBias=.002;scene.add(sun,sun.target);
+ const lamp=new T.PointLight('#ffe1b2',1,8);lamp.position.set(-5.5,1.3,6);lamp.castShadow=true;lamp.shadow.mapSize.set(256,256);scene.add(lamp);
+ const ground=new T.Mesh(new T.PlaneGeometry(4,4),new T.MeshStandardMaterial({color:'#7f9b85',roughness:.8}));ground.rotation.x=-Math.PI/2;ground.position.set(-6.3,-.04,6.9);ground.receiveShadow=true;scene.add(ground);
+ const loader=new GLTFLoader().setDRACOLoader(new DRACOLoader().setDecoderPath('../dist/vendor/three/addons/libs/draco/gltf/'));
+ const gpu=(await loader.loadAsync('../dist/assets/pond-lotus.glb')).scene,cpu=gpu.clone(true),sources=[];
+ for(const root of [gpu,cpu])root.traverse(o=>{if(o.isMesh){o.castShadow=o.receiveShadow=true;}});
+ cpu.traverse(o=>{if(!o.isMesh)return;o.geometry=o.geometry.clone();o.material=o.material.clone();sources.push({o,p:o.geometry.attributes.position.clone(),n:o.geometry.attributes.normal.clone()});});scene.add(gpu,cpu);
+ const time={value:0},gpuNormal=new T.MeshNormalMaterial(),cpuNormal=new T.MeshNormalMaterial();const stats=installPondLotusMotion(gpu,time,gpuNormal);
+ const camera=new T.PerspectiveCamera(42,W/H,.02,100);camera.position.set(-4.6,1.55,9.45);camera.lookAt(-6.3,.18,6.9);const target=new T.WebGLRenderTarget(W,H),normalMatrix=new T.Matrix3();
+ function cpuPose(t){for(const {o,p,n}of sources){const pos=o.geometry.attributes.position,norm=o.geometry.attributes.normal;for(let i=0;i<p.count;i++){const q=lotusSway(p.getX(i),p.getY(i),p.getZ(i),t);pos.setXYZ(i,...q.position);normalMatrix.set(...q.jacobian).invert().transpose();const v=new T.Vector3(n.getX(i),n.getY(i),n.getZ(i)).applyMatrix3(normalMatrix).normalize();norm.setXYZ(i,v.x,v.y,v.z);}pos.needsUpdate=norm.needsUpdate=true;o.geometry.computeBoundingSphere();}}
+ function draw(isGPU,normal=false){gpu.visible=isGPU;cpu.visible=!isGPU;scene.overrideMaterial=normal?(isGPU?gpuNormal:cpuNormal):null;renderer.setRenderTarget(target);renderer.render(scene,camera);const pixels=new Uint8Array(W*H*4);renderer.readRenderTargetPixels(target,0,0,W,H,pixels);return pixels;}
+ function compare(a,b){let total=0,max=0,changed=0;for(let i=0;i<a.length;i++){const d=Math.abs(a[i]-b[i]);total+=d;if(d)changed++;max=Math.max(max,d);}return {changedChannels:changed,maxError:max,meanError:total/a.length};}
+ const cases=[];let first,last;for(const t of [0,4,9]){time.value=t;cpuPose(t);const color=draw(true),reference=draw(false),normal=draw(true,true),normalRef=draw(false,true);cases.push({time:t,color:compare(color,reference),normal:compare(normal,normalRef)});if(!first)first=color;last=color;}
+ const motion=compare(first,last);document.querySelector('#result').textContent=JSON.stringify({stats,cases,motion,scope:'Actual Blender lotus geometry; GPU versus independently CPU-deformed positions/normals, including directional and point shadows and normal override pass.'},null,2);
+ gpu.visible=true;cpu.visible=false;scene.overrideMaterial=null;renderer.setRenderTarget(null);const start=performance.now();function frame(now){time.value=(now-start)/1000;renderer.render(scene,camera);requestAnimationFrame(frame);}requestAnimationFrame(frame);
+}catch(e){document.querySelector('#result').textContent=e.stack;console.error(e);}
+</script>
